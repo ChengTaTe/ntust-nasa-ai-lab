@@ -242,9 +242,14 @@ STUDENT-MAIN Brain 驗收限制：
 - **EXECUTOR:** MAIN Own Worker (Codex)
 - **AUTHORIZED_BY:** STUDENT
 - **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
-- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **CURRENT_STATUS:** `PASS`
 - **RETURN_TO:** STUDENT-MAIN Brain
 - **OBJECTIVE:** 同步 WO-M0-004 Brain PASS，並修正 M1 資料契約治理文件。
+- **BRAIN_REVIEW:** `COMPLETED`
+- **BRAIN_DECISION:** `PASS`
+- **REVIEWER:** STUDENT-MAIN Brain
+- **ACCEPTED_COMMIT:** `07f256744307c177f1d8720c74c69b584cb6ec40`
+- **ACCEPTED_COMMIT_URL:** <https://github.com/ChengTaTe/ntust-nasa-ai-lab/commit/07f256744307c177f1d8720c74c69b584cb6ec40>
 
 ### Approved M1 Data Contract
 
@@ -261,6 +266,35 @@ STUDENT-MAIN Brain 驗收限制：
 
 ---
 
+## M0 Final Closure Record
+
+- **M0_GATE:** `PASS`
+- **M0_CLOSURE_STATUS:** `COMPLETED`
+- **M0_ACCEPTED_WORK_ITEMS:** `WO-M0-001 THROUGH WO-M0-005`
+- **M1_GATE:** `AUTHORIZED_PENDING_RESEARCH_RECHECK`
+
+M0 已依 STUDENT 與 STUDENT-MAIN Brain 的驗收決議完成治理結案。GitHub 同步完成後，Research Brain 必須重新讀取最新 `AGENTS.md` 與 `WORK_ITEM.md`，重新執行治理 preflight；不得直接假定 Research Own Worker 已啟動或 M1 已完成。
+
+---
+
+## WO-M0-006
+
+- **WORK_ITEM_ID:** `WO-M0-006`
+- **TYPE:** `FINAL_M0_GOVERNANCE_CLOSURE`
+- **MILESTONE:** `M0`
+- **OWNER:** STUDENT-MAIN Brain
+- **EXECUTOR:** MAIN Own Worker (Codex)
+- **AUTHORIZED_BY:** STUDENT
+- **AUTHORIZATION_SCOPE:** `FINAL_M0_CLOSURE`
+- **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
+- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **RETURN_TO:** STUDENT-MAIN Brain
+- **OBJECTIVE:** 一次完成 M0 最終治理狀態同步，解除 M1 Research Brain 的治理狀態阻擋。
+
+WO-M0-006 的 Worker 完成與 GitHub Push 不等於 Brain PASS。STUDENT-MAIN Brain 將從 GitHub 獨立驗收後正式結案；不要求另開工作單同步 WO-M0-006 的 PASS。
+
+---
+
 ## WO-M1-001
 
 - **WORK_ITEM_ID:** `WO-M1-001`
@@ -268,8 +302,13 @@ STUDENT-MAIN Brain 驗收限制：
 - **OWNER:** STUDENT-MAIN Brain
 - **TARGET:** STUDENT-RESEARCH Brain
 - **AUTHORIZED_BY:** STUDENT
-- **DISPATCH_STATUS:** `CREATED_NOT_DISPATCHED`
-- **CURRENT_STATUS:** `BLOCKED_PENDING_M1_AUTHORIZATION`
+- **AUTHORIZATION_STATUS:** `APPROVED`
+- **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
+- **CURRENT_STATUS:** `COMMAND_DISPATCHED`
+- **RESEARCH_BRAIN_ACK:** `ACK`
+- **GOVERNANCE_PREFLIGHT:** `BLOCKED_PENDING_SYNC`
+- **RESEARCH_WORKER_DISPATCH_STATUS:** `NOT_DISPATCHED`
+- **M1_COMPLETION_STATUS:** `NOT_COMPLETED`
 - **RETURN_TO:** STUDENT-MAIN Brain
 - **DATASET_PATH:** `data/synthetic_sensor.csv`
 - **DATASET_TYPE:** `Synthetic Sensor Data`
@@ -278,4 +317,8 @@ STUDENT-MAIN Brain 驗收限制：
 - **HEADER_INCLUDED_IN_ROW_COUNT:** `NO`
 - **ACTUAL_DATA_ROWS:** `NOT_VERIFIED`
 
-WO-M1-001 目前尚未正式派送，亦未取得 M1 正式執行授權。不得將其視為 `COMMAND_DISPATCHED`、`IN_PROGRESS` 或 `PASS`；不得啟動 Research Own Worker、讀取 CSV 內容或執行任何資料分析。
+### Research Brain Blocked History
+
+Research Brain 曾因 GitHub 治理狀態尚未同步 M0 結案與 M1 正式授權而停止派工。該 BLOCKED 回報保留為歷史證據，不得改寫為已完成的 PASS。
+
+本次治理同步後，WO-M1-001 已正式派送至 Research Brain，但 Research Brain 必須先重新檢查 GitHub 最新治理規則；Research Own Worker 仍未派送，實際資料列數仍未驗證，M1 亦未完成。
