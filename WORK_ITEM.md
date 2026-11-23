@@ -161,9 +161,14 @@ STUDENT-MAIN Brain 驗收限制：
 - **EXECUTOR:** MAIN Own Worker (Codex)
 - **AUTHORIZED_BY:** STUDENT
 - **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
-- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **CURRENT_STATUS:** `PASS`
 - **RETURN_TO:** STUDENT-MAIN Brain
 - **OBJECTIVE:** 同步 WO-M0-002 Brain PASS，並唯讀盤點本地合成 CSV 路徑。
+- **BRAIN_REVIEW:** `COMPLETED`
+- **BRAIN_DECISION:** `PASS`
+- **REVIEWER:** STUDENT-MAIN Brain
+- **ACCEPTED_COMMIT:** `10967948bdabfb99d9811443ef6a042013df315b`
+- **ACCEPTED_COMMIT_URL:** <https://github.com/ChengTaTe/ntust-nasa-ai-lab/commit/10967948bdabfb99d9811443ef6a042013df315b>
 
 ### Local CSV Path Inventory
 
@@ -183,6 +188,43 @@ STUDENT-MAIN Brain 驗收限制：
 - **CANDIDATE_1_EXISTS:** `YES`
 
 實際數量不等於六，且指定路徑不存在。以上僅為唯讀路徑盤點結果；未指定候選檔案為正式資料、未補造缺少的檔案、未讀取 CSV 內容，亦不得將本盤點視為 M1 資料驗收。
+
+---
+
+## WO-M0-004
+
+- **WORK_ITEM_ID:** `WO-M0-004`
+- **TYPE:** `GOVERNANCE_STATUS_SYNC_AND_DATASET_PATH_INVENTORY`
+- **MILESTONE:** `M0`
+- **OWNER:** STUDENT-MAIN Brain
+- **EXECUTOR:** MAIN Own Worker (Codex)
+- **AUTHORIZED_BY:** STUDENT
+- **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
+- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **RETURN_TO:** STUDENT-MAIN Brain
+- **OBJECTIVE:** 同步 WO-M0-003 Brain PASS，並重新盤點 STUDENT 指定的正確 DATA_ROOT。
+
+### DATA_ROOT Re-Inventory
+
+- **STUDENT_SPECIFIED_DATA_ROOT:** `C:\Users\user\OneDrive\文件\ChatGPT\NTUST_261123\data`
+- **DATA_ROOT_EXISTS:** `YES`
+- **INVENTORY_SCOPE:** 僅在上述 DATA_ROOT 及其子目錄列舉 `.csv` 檔名、相對路徑、存在狀態與 `._` 前綴分類。
+- **CSV_COUNT:** `1`
+- **CSV_INVENTORY_STATUS:** `INCOMPLETE`
+- **DATASET_IDENTITY_STATUS:** `UNCONFIRMED`
+- **CSV_CONTENT_READ:** `NO`
+- **CSV_ANALYSIS_EXECUTED:** `NO`
+
+本次實際盤點結果：
+
+- **CSV_1_NAME:** `synthetic_sensor.csv`
+- **CSV_1_RELATIVE_PATH:** `data/synthetic_sensor.csv`
+- **CSV_1_EXISTS:** `YES`
+- **CSV_1_IS_DOT_UNDERSCORE:** `NO`
+
+`._` 前綴候選中繼資料檔：`NONE_FOUND`。
+
+本次檢查未預設任何檔案存在，亦未以 WO-M0-003 的先前盤點取代實際檢查。實際找到一份 CSV，少於預期六份；未自行補造、挑選或認定其為正式 M1 資料集。檔案內容、欄位、資料列、Length、LastWriteTime 與內容雜湊均未讀取或計算，本紀錄不代表 M1 PASS。
 
 ---
 
