@@ -1,0 +1,33 @@
+# Credentials and local environment settings
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.*
+
+# Local/private data and NASA C-MAPSS datasets
+data/
+synthetic_sensor.csv
+*.csv
+*.tsv
+CMAPSSData/
+C-MAPSS/
+FD001/
+train_FD001.txt
+test_FD001.txt
+RUL_FD001.txt
+
+# Local tooling and operating-system files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+__pycache__/
+.pytest_cache/
+.venv/
+venv/
+node_modules/

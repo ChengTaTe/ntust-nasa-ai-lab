@@ -1,70 +1,79 @@
 # Work Item Registry
 
-## Current Assignment
+## WO-M0-001
 
-- **CURRENT_WORK_ITEM:** `WO-M0-001`
-- **REVISION:** `R2`
+- **WORK_ITEM_ID:** `WO-M0-001`
 - **TYPE:** `BOUNDED_WORK_ORDER`
 - **MILESTONE:** `M0`
 - **OWNER:** STUDENT-MAIN Brain
-- **WORKER:** MAIN Own Worker (Codex)
-- **STATUS:** `COMMAND_DISPATCHED`
+- **EXECUTOR:** MAIN Own Worker (Codex)
 - **AUTHORIZED_BY:** STUDENT
+- **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
+- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
 - **RETURN_TO:** STUDENT-MAIN Brain
 
-## Scope
+## INPUT
 
-**AUTHORIZED_FILES:**
+- STUDENT 核准的 `WO-M0-001` 正式工作單。
+- 學生指定的本地專案根目錄。
+- 學生已授權使用的 GitHub 帳號與目標 Repository `ntust-nasa-ai-lab`。
 
-- `AGENTS.md`
-- `ROADMAP.md`
-- `WORK_ITEM.md`
-- `DECISIONS.md`
+## AUTHORIZED_SCOPE
 
-**READ_ONLY:**
+- 建立或修訂 `AGENTS.md`、`ROADMAP.md`、`WORK_ITEM.md`、`DECISIONS.md`。
+- 初始化或安全沿用 Git，確保正式分支為 `main`。
+- 建立或檢查必要且安全的 `.gitignore`。
+- 建立公開 GitHub Repository（僅在不存在且帳號已確認時），或安全驗證既有同名 Repository。
+- 將本工作單授權成果 Commit、Push 至 `main` 並執行遠端驗證。
 
-- `data/`
-- NASA C-MAPSS FD001
-- 所有原始 CSV
+## READ_ONLY
 
-**INPUT:** 學生核准的 WO-M0-001 Revision R2、工作單恢復命令，以及既有但尚無 Commit 的本地 Git Repository。
+- `data/`、NASA C-MAPSS FD001、`synthetic_sensor.csv`、其他五筆合成 CSV 及所有原始資料。
+- 非本工作單授權的既有程式碼、設定檔、其他 Repository 與 Brain 工作區。
 
-**EXPECTED_OUTPUT:** 四份完整治理文件、Git Commit、公開 GitHub Repository `ntust-nasa-ai-lab`、`main` 遠端分支及遠端驗證證據。
+## OUTPUT
 
-**COMMIT_MESSAGE:** `chore(M0): initialize AI team governance and roadmap`
+- 四份完整且可獨立閱讀的治理文件。
+- 安全的 `.gitignore`（如有必要）。
+- Git `main` Commit、公開 GitHub Repository、Push 與遠端驗證證據。
+- 完整 Worker 執行報告；最終僅能回報 `PENDING_BRAIN_REVIEW`、`BLOCKED` 或 `FAILED`。
 
-## Acceptance Criteria
+## ACCEPTANCE_CRITERIA
 
-- 專案根目錄及 GitHub 帳號正確。
-- 四份治理文件完整且僅修改授權檔案。
-- 權責邊界、唯讀政策、Git 治理及 M0-M5 Roadmap 可執行、可查核。
-- `data/` 保持唯讀且未加入 Git。
-- Commit 訊息正確，僅含四份授權文件。
-- 公開 Repository 建立成功並 Push 至 `main`。
-- 本地與遠端 Commit 一致，遠端四份文件可讀取。
-- File SHA-256、Exit Code、Repository URL 及 Commit URL 均有記錄。
+1. 四個 Markdown 文件完整存在，治理規則一致且無相互矛盾。
+2. Git `main` 分支存在，Commit 成功且暫存內容僅含授權檔案。
+3. GitHub Repository 為公開，Push 成功，遠端 `main` 與本地 HEAD 一致。
+4. 四份治理文件可從 GitHub `main` 實際讀取。
+5. 未提交 NASA 原始資料、合成 CSV、憑證、金鑰或私人資訊。
+6. Worker 提供命令、Exit Code、測試、完整 Commit ID、Object Format、四份文件 SHA-256、Repository 與 Commit URL。
+7. STUDENT-MAIN Brain 從 GitHub 獨立審查後，才可決定 `PASS`。
 
-## Stop If
+## STATUS_FLOW
 
-- 專案根目錄、GitHub CLI 登入或 GitHub 帳號不正確。
-- 目標 Repository 已存在或 Git 歷史、origin 發生衝突。
-- 暫存區包含未授權檔案。
-- 作業需要讀取、修改、移動、刪除或提交 `data/` 或原始 CSV。
-- 文件建立、Commit、Push 或遠端驗證失敗。
-- 作業需要執行 M1-M5 或任何未授權操作。
+`COMMAND_DISPATCHED` → `IN_PROGRESS` → `WORKER_COMPLETED` → `PENDING_BRAIN_REVIEW` → `PASS / REWORK / BLOCKED`
 
-## Evidence Required
+`WORKER_COMPLETED` 與 `PENDING_BRAIN_REVIEW` 均不等於 `PASS`。
 
-- WORK_ITEM_ID、Revision、實際命令及 Exit Code。
-- Git Commit 完整 ID、Commit Object Format 及 Commit 訊息。
-- 四份治理文件 SHA-256。
-- GitHub Repository URL、Commit URL、可見性及預設分支。
-- 本地與遠端 `main` Commit 比對結果。
-- 遠端四份檔案及無未授權檔案的驗證結果。
-- `data/` 唯讀保留狀態及測試結果。
+## STOP_IF
 
-## Return Format
+- 無法確認專案根目錄、授權 GitHub 帳號、工作範圍或資料來源。
+- 必須覆寫既有重要檔案、破壞 Git 歷史或解決無法安全處理的遠端衝突。
+- GitHub 驗證、Commit、Push、遠端 SHA 比對或遠端檔案讀取失敗。
+- 暫存區包含未授權檔案，或發現公開資料、憑證、金鑰或私人資訊的風險。
+- 工作需要讀取、分析、修改、刪除、移動或上傳原始資料，或執行 M1-M5。
 
-回報必須包含 STATUS、PROJECT_ROOT、GITHUB_ACCOUNT、GITHUB_REPOSITORY、GITHUB_COMMIT_URL、BRANCH、COMMIT_MESSAGE、COMMIT_OBJECT_FORMAT、COMMIT_SHA、COMMIT_SHA256、FILE_SHA256、EXIT_CODES、FILES_CREATED、FILES_MODIFIED、REMOTE_FILES_VERIFIED、DATA_DIRECTORY_STATUS、TEST_RESULT、EVIDENCE、LIMITATIONS、BLOCKERS 及 NEXT_ACTION。
+## EVIDENCE
 
-Worker 完成並 Push 成功後，狀態為 **SUBMITTED**。Worker SUBMITTED 不等於 Brain PASS；只有 MAIN Brain 從 GitHub 獨立讀取並驗證成果後，才能將工作狀態更新為 **PASS**。M0 PASS 前不得開始 M1。
+- 工作目錄、Git/GitHub 工具、GitHub 登入帳號、Repository visibility 與 default branch 的實際檢查結果。
+- `git diff --check`、`git diff --cached --check`、staged file 清單與安全檢查。
+- 完整 Commit ID、Commit Object Format、Commit 訊息及本地/遠端 `main` SHA。
+- 四份治理文件的 SHA-256、GitHub 遠端檔案 URL 與可讀取驗證。
+- 所有必要命令的實際 Exit Code、測試結果、blocker 與未提交變更。
+
+## COMMIT_MESSAGE
+
+`chore(M0): initialize AI team governance and roadmap`
+
+## RETURN_TO
+
+提交 STUDENT-MAIN Brain 進行 GitHub 遠端獨立審查。M0 即使通過，仍須 STUDENT 另行授權才能派發 M1。
