@@ -200,9 +200,14 @@ STUDENT-MAIN Brain 驗收限制：
 - **EXECUTOR:** MAIN Own Worker (Codex)
 - **AUTHORIZED_BY:** STUDENT
 - **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
-- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **CURRENT_STATUS:** `PASS`
 - **RETURN_TO:** STUDENT-MAIN Brain
 - **OBJECTIVE:** 同步 WO-M0-003 Brain PASS，並重新盤點 STUDENT 指定的正確 DATA_ROOT。
+- **BRAIN_REVIEW:** `COMPLETED`
+- **BRAIN_DECISION:** `PASS`
+- **REVIEWER:** STUDENT-MAIN Brain
+- **ACCEPTED_COMMIT:** `ee71838b045ab591dc762067cf005bb453d4e2ee`
+- **ACCEPTED_COMMIT_URL:** <https://github.com/ChengTaTe/ntust-nasa-ai-lab/commit/ee71838b045ab591dc762067cf005bb453d4e2ee>
 
 ### DATA_ROOT Re-Inventory
 
@@ -228,6 +233,34 @@ STUDENT-MAIN Brain 驗收限制：
 
 ---
 
+## WO-M0-005
+
+- **WORK_ITEM_ID:** `WO-M0-005`
+- **TYPE:** `DATA_CONTRACT_GOVERNANCE_SYNC`
+- **MILESTONE:** `M0`
+- **OWNER:** STUDENT-MAIN Brain
+- **EXECUTOR:** MAIN Own Worker (Codex)
+- **AUTHORIZED_BY:** STUDENT
+- **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
+- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **RETURN_TO:** STUDENT-MAIN Brain
+- **OBJECTIVE:** 同步 WO-M0-004 Brain PASS，並修正 M1 資料契約治理文件。
+
+### Approved M1 Data Contract
+
+- **DATASET_PATH:** `data/synthetic_sensor.csv`
+- **DATASET_TYPE:** `Synthetic Sensor Data`
+- **EXPECTED_CSV_COUNT:** `1`
+- **EXPECTED_DATA_ROWS:** `6`
+- **HEADER_INCLUDED_IN_ROW_COUNT:** `NO`
+- **ACTUAL_DATA_ROWS:** `NOT_VERIFIED`
+- **CSV_CONTENT_READ:** `NO`
+- **CSV_ANALYSIS_EXECUTED:** `NO`
+
+本工作單僅同步 STUDENT 核准的資料契約，未驗證實際資料列數、欄位、格式或資料內容。WO-M0-003 與 WO-M0-004 的原始盤點證據保留不變；舊有「六份 CSV」假設已由 STUDENT 修正為「一份 CSV、預期六筆資料列」。
+
+---
+
 ## WO-M1-001
 
 - **WORK_ITEM_ID:** `WO-M1-001`
@@ -236,8 +269,13 @@ STUDENT-MAIN Brain 驗收限制：
 - **TARGET:** STUDENT-RESEARCH Brain
 - **AUTHORIZED_BY:** STUDENT
 - **DISPATCH_STATUS:** `CREATED_NOT_DISPATCHED`
-- **CURRENT_STATUS:** `BLOCKED_PENDING_GOVERNANCE_SYNC`
+- **CURRENT_STATUS:** `BLOCKED_PENDING_M1_AUTHORIZATION`
 - **RETURN_TO:** STUDENT-MAIN Brain
-- **DATASET:** `data/intro/synthetic_sensor.csv`
+- **DATASET_PATH:** `data/synthetic_sensor.csv`
+- **DATASET_TYPE:** `Synthetic Sensor Data`
+- **EXPECTED_CSV_COUNT:** `1`
+- **EXPECTED_DATA_ROWS:** `6`
+- **HEADER_INCLUDED_IN_ROW_COUNT:** `NO`
+- **ACTUAL_DATA_ROWS:** `NOT_VERIFIED`
 
-WO-M1-001 僅獲 STUDENT 啟動 M1 的規劃授權，目前尚未正式派送。不得將其視為 `COMMAND_DISPATCHED`、`IN_PROGRESS` 或 `PASS`；WO-M0-002 未經 STUDENT-MAIN Brain PASS 前，不得啟動 Research Own Worker 或執行任何 CSV 分析。
+WO-M1-001 目前尚未正式派送，亦未取得 M1 正式執行授權。不得將其視為 `COMMAND_DISPATCHED`、`IN_PROGRESS` 或 `PASS`；不得啟動 Research Own Worker、讀取 CSV 內容或執行任何資料分析。

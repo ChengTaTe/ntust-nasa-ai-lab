@@ -81,3 +81,17 @@
 - **Context:** 遠端驗證是 PASS 的必要證據。
 - **Decision:** GitHub 無法存取、遠端 SHA 不一致或檔案無法讀取時，狀態必須為 BLOCKED。
 - **Consequences:** 不得以本地結果、push 訊息或 Worker 自述代替遠端驗證。
+
+## DEC-011: M1 Synthetic Dataset Contract Clarification
+
+- **Date:** 2026-11-23
+- **Status:** ACCEPTED
+- **Context:** 既有文件將六筆合成資料誤解為六份 CSV，造成資料數量及路徑歧義。
+- **Decision:** M1 使用一份 `synthetic_sensor.csv`，位於 `data/synthetic_sensor.csv`，預期包含六筆資料列且不含標題列；`ACTUAL_DATA_ROWS` 為 `NOT_VERIFIED`。
+- **Consequences:**
+  1. 不再要求六份獨立 CSV。
+  2. 不得補造額外五份 CSV。
+  3. 實際資料列數須於正式授權的 M1 驗證。
+  4. 原始 CSV 維持唯讀。
+  5. 合成資料不得冒充 NASA C-MAPSS FD001。
+  6. M1 須另行取得 STUDENT 正式執行授權。

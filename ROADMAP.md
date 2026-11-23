@@ -15,13 +15,14 @@
 
 ## M1: Synthetic Dataset Governance Exercise
 
-- **目標：** 使用本地 `synthetic_sensor.csv` 等六筆合成資料，學習資料檢查、派工、Worker 回報與 Brain 驗收閉環。
-- **輸入：** 已授權且經辨識的六筆本地合成 CSV，以及 M0 已通過的治理規則。
-- **交付物：** 可重現的資料檢查紀錄、Dataset Profile、來源標示、Worker 證據與 Brain 驗收結果。
+- **目標：** 使用一份 `synthetic_sensor.csv`（預期含六筆合成資料列，不含標題列）學習資料檢查、派工、Worker 回報與 Brain 驗收閉環。
+- **資料契約：** `DATASET_PATH: data/synthetic_sensor.csv`；`DATASET_TYPE: Synthetic Sensor Data`；`EXPECTED_CSV_COUNT: 1`；`EXPECTED_DATA_ROWS: 6`；`HEADER_INCLUDED_IN_ROW_COUNT: NO`；`ACTUAL_DATA_ROWS: NOT_VERIFIED`。
+- **輸入：** 已獲正式 M1 執行授權且身分待驗證的一份本地合成 CSV，以及 M0 已通過的治理規則。
+- **交付物：** 實際資料列數驗證、欄位與格式驗證、合成資料來源與身分確認、可重現的 Dataset Profile、Worker 證據與 Brain 驗收結果。
 - **責任 Brain：** Research Brain。
 - **執行 Worker：** Research Own Worker（DATA Worker 為功能標籤）。
-- **驗收條件：** 六筆合成資料身分清楚、未被誤稱為 FD001、檢查結果可重現且由 Research Brain 審查。
-- **STOP_IF：** M0 未 PASS 或未獲 STUDENT 授權；資料來源、數量或權限不明；需修改原始資料。
+- **驗收條件：** 驗證實際資料列數、欄位與資料格式，確認合成資料來源與身分，建立可重現的 Dataset Profile，且由 Research Brain 獨立審查；不得將合成資料誤稱為 FD001。
+- **STOP_IF：** M0 未 PASS 或未獲 STUDENT 正式 M1 執行授權；資料來源、身分、數量或權限不明；需修改原始資料。
 - **下一角色：** STUDENT-MAIN Brain，進行里程碑閘門審查。
 
 ## M2: Local Health Analytics Website MVP
