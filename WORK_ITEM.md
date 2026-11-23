@@ -9,7 +9,7 @@
 - **EXECUTOR:** MAIN Own Worker (Codex)
 - **AUTHORIZED_BY:** STUDENT
 - **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
-- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **CURRENT_STATUS:** `PASS`
 - **RETURN_TO:** STUDENT-MAIN Brain
 
 ## INPUT
@@ -77,3 +77,69 @@
 ## RETURN_TO
 
 提交 STUDENT-MAIN Brain 進行 GitHub 遠端獨立審查。M0 即使通過，仍須 STUDENT 另行授權才能派發 M1。
+
+## M0 Acceptance Record for WO-M0-001
+
+- **BRAIN_REVIEW:** `COMPLETED`
+- **BRAIN_DECISION:** `PASS`
+- **REVIEWER:** STUDENT-MAIN Brain
+- **BRAIN_REVIEW_RECORDED_DATE:** `2026-11-23`
+- **ACCEPTED_SOURCE_COMMIT:** `c3742e3b332d77d17b32881776467492777647d9`
+- **COMMIT_OBJECT_FORMAT:** `sha1`
+- **GITHUB_REPOSITORY:** <https://github.com/ChengTaTe/ntust-nasa-ai-lab>
+- **GITHUB_COMMIT_URL:** <https://github.com/ChengTaTe/ntust-nasa-ai-lab/commit/c3742e3b332d77d17b32881776467492777647d9>
+
+### M0_ACCEPTANCE_EVIDENCE
+
+STUDENT-MAIN Brain 已確認：
+
+- GitHub Repository 為公開，預設分支為 `main`。
+- 遠端 Commit SHA 符合 WO-M0-001 Worker 回報。
+- 遠端 `AGENTS.md`、`ROADMAP.md`、`WORK_ITEM.md`、`DECISIONS.md` 可讀。
+- 治理文件主要內容符合 WO-M0-001，包括角色與權限邊界、M0-M5 循序 Roadmap、正式工作單及 GitHub 遠端驗收規則。
+- 原始 Commit 僅涉及 `.gitignore`、`AGENTS.md`、`DECISIONS.md`、`ROADMAP.md`、`WORK_ITEM.md` 五份授權檔案。
+- 遠端檔案樹未包含原始 CSV。
+
+STUDENT-MAIN Brain 未獨立確認：
+
+- WO-M0-001 完成時的本地工作樹狀態。
+- 四份治理文件的 SHA-256 是否由 Brain 獨立重新計算。
+
+上述未獨立確認項目保留為驗收限制，不得改寫為已驗證通過。此 PASS 為 STUDENT-MAIN Brain 對 WO-M0-001 的驗收決議；原始 Worker 執行與提交紀錄由來源 Commit 及既有工作單內容持續保留。
+
+---
+
+## WO-M0-002
+
+- **WORK_ITEM_ID:** `WO-M0-002`
+- **TYPE:** `BOUNDED_WORK_ORDER`
+- **MILESTONE:** `M0`
+- **OWNER:** STUDENT-MAIN Brain
+- **EXECUTOR:** MAIN Own Worker (Codex)
+- **AUTHORIZED_BY:** STUDENT
+- **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
+- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **RETURN_TO:** STUDENT-MAIN Brain
+- **OBJECTIVE:** Synchronize M0 acceptance evidence.
+
+### WO-M0-002 Scope and Result Boundary
+
+- 僅同步 WO-M0-001 Brain PASS 驗收決議、追溯資訊及後續工作單登錄。
+- 僅允許修改 `WORK_ITEM.md`，不得修改其他治理文件、資料、程式碼或設定。
+- Worker 完成 Commit 與 Push 後仍須 STUDENT-MAIN Brain 從 GitHub 獨立驗收；`PENDING_BRAIN_REVIEW` 不等於 `PASS`。
+
+---
+
+## WO-M1-001
+
+- **WORK_ITEM_ID:** `WO-M1-001`
+- **MILESTONE:** `M1`
+- **OWNER:** STUDENT-MAIN Brain
+- **TARGET:** STUDENT-RESEARCH Brain
+- **AUTHORIZED_BY:** STUDENT
+- **DISPATCH_STATUS:** `CREATED_NOT_DISPATCHED`
+- **CURRENT_STATUS:** `BLOCKED_PENDING_GOVERNANCE_SYNC`
+- **RETURN_TO:** STUDENT-MAIN Brain
+- **DATASET:** `data/intro/synthetic_sensor.csv`
+
+WO-M1-001 僅獲 STUDENT 啟動 M1 的規劃授權，目前尚未正式派送。不得將其視為 `COMMAND_DISPATCHED`、`IN_PROGRESS` 或 `PASS`；WO-M0-002 未經 STUDENT-MAIN Brain PASS 前，不得啟動 Research Own Worker 或執行任何 CSV 分析。
