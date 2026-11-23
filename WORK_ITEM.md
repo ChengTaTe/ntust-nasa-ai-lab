@@ -118,15 +118,71 @@ STUDENT-MAIN Brain 未獨立確認：
 - **EXECUTOR:** MAIN Own Worker (Codex)
 - **AUTHORIZED_BY:** STUDENT
 - **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
-- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **CURRENT_STATUS:** `PASS`
 - **RETURN_TO:** STUDENT-MAIN Brain
 - **OBJECTIVE:** Synchronize M0 acceptance evidence.
+- **BRAIN_REVIEW:** `COMPLETED`
+- **BRAIN_DECISION:** `PASS`
+- **REVIEWER:** STUDENT-MAIN Brain
+- **ACCEPTED_COMMIT:** `1b40db6e7657ba2062298a625d174ce2effd288c`
+- **ACCEPTED_COMMIT_URL:** <https://github.com/ChengTaTe/ntust-nasa-ai-lab/commit/1b40db6e7657ba2062298a625d174ce2effd288c>
+
+### WO-M0-002 Brain Acceptance Evidence
+
+STUDENT-MAIN Brain 已確認：
+
+- 已從 GitHub 獨立讀取 Commit `1b40db6e7657ba2062298a625d174ce2effd288c`。
+- 該 Commit 僅修改 `WORK_ITEM.md`。
+- WO-M0-001 的 `CURRENT_STATUS` 為 `PASS`。
+- WO-M1-001 的 `DISPATCH_STATUS` 為 `CREATED_NOT_DISPATCHED`，尚未正式派送。
+- 驗收時遠端 `main` SHA 與 Worker 回報一致。
+
+STUDENT-MAIN Brain 驗收限制：
+
+- `WORK_ITEM.md` SHA-256 尚未由 Brain 獨立重新計算。
+- Worker 本地執行命令及 Exit Code 以 Worker 回報為據。
+
+上述限制不得改寫為已由 Brain 驗證通過。
 
 ### WO-M0-002 Scope and Result Boundary
 
 - 僅同步 WO-M0-001 Brain PASS 驗收決議、追溯資訊及後續工作單登錄。
 - 僅允許修改 `WORK_ITEM.md`，不得修改其他治理文件、資料、程式碼或設定。
 - Worker 完成 Commit 與 Push 後仍須 STUDENT-MAIN Brain 從 GitHub 獨立驗收；`PENDING_BRAIN_REVIEW` 不等於 `PASS`。
+
+---
+
+## WO-M0-003
+
+- **WORK_ITEM_ID:** `WO-M0-003`
+- **TYPE:** `GOVERNANCE_STATUS_SYNC_AND_DATASET_PATH_INVENTORY`
+- **MILESTONE:** `M0`
+- **OWNER:** STUDENT-MAIN Brain
+- **EXECUTOR:** MAIN Own Worker (Codex)
+- **AUTHORIZED_BY:** STUDENT
+- **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
+- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **RETURN_TO:** STUDENT-MAIN Brain
+- **OBJECTIVE:** 同步 WO-M0-002 Brain PASS，並唯讀盤點本地合成 CSV 路徑。
+
+### Local CSV Path Inventory
+
+- **INVENTORY_SCOPE:** 僅列舉 `data/` 下 CSV 的檔名、相對路徑及存在狀態。
+- **EXPECTED_CSV_COUNT:** `6`
+- **ACTUAL_CSV_COUNT:** `1`
+- **CSV_INVENTORY_STATUS:** `INCOMPLETE`
+- **CONFIRMATION_STATUS:** `PENDING_MAIN_STUDENT_CONFIRMATION`
+- **CSV_CONTENT_READ:** `NO`
+- **CSV_ANALYSIS_EXECUTED:** `NO`
+
+盤點結果：
+
+- **REQUIRED_RELATIVE_PATH:** `data/intro/synthetic_sensor.csv`
+- **REQUIRED_PATH_EXISTS:** `NO`
+- **CANDIDATE_1_RELATIVE_PATH:** `data/._synthetic_sensor.csv`
+- **CANDIDATE_1_EXISTS:** `YES`
+
+實際數量不等於六，且指定路徑不存在。以上僅為唯讀路徑盤點結果；未指定候選檔案為正式資料、未補造缺少的檔案、未讀取 CSV 內容，亦不得將本盤點視為 M1 資料驗收。
 
 ---
 
