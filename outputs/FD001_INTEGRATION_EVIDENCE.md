@@ -2,7 +2,10 @@
 
 ## Evidence identity
 
-- Work item: `WO-M3-001-EW-001` revision 1; parent `WO-M3-001`.
+- Work item: `WO-M3-001-EW-001`; parent `WO-M3-001`.
+- Revision 1 established the original M3 integration evidence at commit `a223bb75ca4b97e2e21ea6375d20fd50a7a717d7`.
+- Revision 2 resolved `M3-EW-001` and its SVG coordinate acceptance is retained at accepted commit `1f6581736bfd08689cb6d8905e11c8c191ea7492`.
+- Revision 3 addresses only finding `M3-R-001` (`INDEPENDENT_DATA_EVIDENCE_COVERAGE_GAP`) from `WO-M3-002`; its execution baseline is the accepted Revision 2 commit.
 - Initial local and fetched remote SHA: `e4be5af8c2b812639b1a94f5b8115e18d7965cd3`.
 - Contract: `1.0.0`; query specifications: 10; contract query boundaries: 7.
 - Independent expected values are read directly from ASCII source lines using whitespace tokenization. They are not copied from Catalog or API output.
@@ -35,6 +38,18 @@
 | INT-013 | TASK-07, AC-11 | missing/mismatch/change/disappearance | temporary roots and method mocks in accepted regression | source guard → sticky API failure | exact | PASS; restart-required behavior verified |
 | INT-014 | TASK-05 | delayed Unit/Split/Sensor/Cycle/error requests | deterministic Browser request delays | HTTP → transaction/version guard → DOM | exact final selection | PASS; accepted 19-case Browser suite |
 | INT-015 | AC-12/13 | six required suites | actual `unittest` executions | parser/API/Web/Browser/M3 | no failures; no skips | PASS; 74 passed, 0 failed, 0 skipped |
+| INT-016 | M3-R-001, AC-R02/R03 | Test U100 S02 column 7 (198 points, selected C100); Train U1 S01 column 6 (192 points, selected C96) | complete split-local Unit rows tokenized directly from authorized raw text in original order | independent raw oracle → actual loopback HTTP `/api/v1/sensor-series` success envelope → retained Revision 2 SVG cases | exact equality; no numeric tolerance | PASS; complete metadata and every point verified by index |
+
+## Revision 3 independent raw-to-API Sensor series evidence
+
+`test_07_independent_raw_to_sensor_series` reuses the independent `raw_rows()` and `unit_rows()` raw-text oracle. It does not use Catalog, another API endpoint, Browser DOM, SVG Path, or an API-produced series to construct expected values. For each case, the test obtains the actual HTTP response, requires status 200 with `{ok:true,error:null}`, asserts actual and raw-oracle lengths are equal before iteration, and then compares each point at the same index without sorting.
+
+| Case | Raw oracle | API series | Metadata checked | Every point checked | Ordering and selected Cycle |
+| --- | --- | ---: | --- | --- | --- |
+| A | Test Unit 100, Sensor 02, raw column 7 | 198 points | split, Unit, Sensor, source file/SHA-256, raw column, sample count, Cycle start/end | Cycle, parsed value, raw token, raw line number, parsed row index | index-by-index original order; Cycle 100 present |
+| B | Train Unit 1, Sensor 01, raw column 6 | 192 points | split, Unit, Sensor, source file/SHA-256, raw column, sample count, Cycle start/end | Cycle, parsed value, raw token, raw line number, parsed row index | index-by-index original order; Cycle 96 present |
+
+No complete raw row or Sensor series is reproduced in this document or commit. Revision 2 Browser acceptance remains a separate, retained downstream check from these same API-series cases to SVG coordinates.
 
 ## Raw locator and Sensor mapping
 
@@ -46,7 +61,7 @@ Train and Test Unit IDs are tested as independent namespaces: identical `(unit_i
 
 The test oracle computes `N`, Cycle range, start, end, change, OLS slope, and Pearson correlation directly from raw rows. A zero Sensor variance yields `None`/`null` and direction `flat`. Nonconstant cases cover increasing and decreasing patterns across Train and Test and different Unit lengths. Numeric comparison uses `1e-12` absolute tolerance for slope and correlation because the runtime and oracle use the same accepted double-precision formulas but accumulate independently; raw values, counts, ranges, and directions use exact comparison. The tolerance was fixed before execution and was not loosened to obtain a pass.
 
-## Regression and actual Browser results
+## Revision 1/2 retained regression and actual Browser results
 
 | Suite | Passed | Failed | Skipped | Exit code |
 | --- | ---: | ---: | ---: | ---: |
@@ -57,6 +72,22 @@ The test oracle computes `N`, Cycle range, start, end, change, OLS slope, and Pe
 | `test_fd001_integration.py` | 6 | 0 | 0 | 0 |
 | `test_fd001_integration_browser.py` | 4 | 0 | 0 | 0 |
 | **Total** | **74** | **0** | **0** | **all 0** |
+
+The table above is retained historical execution evidence and is not relabeled as Revision 3 execution.
+
+## Revision 3 actual regression results
+
+| Suite | Passed | Failed | Skipped | Exit code |
+| --- | ---: | ---: | ---: | ---: |
+| `test_fd001.py` | 25 | 0 | 0 | 0 |
+| `test_fd001_api.py` | 15 | 0 | 0 | 0 |
+| `test_fd001_web.py` | 5 | 0 | 0 | 0 |
+| `test_fd001_browser.py` | 19 | 0 | 0 | 0 |
+| `test_fd001_integration.py` | 7 | 0 | 0 | 0 |
+| `test_fd001_integration_browser.py` | 4 | 0 | 0 | 0 |
+| **Revision 3 total** | **75** | **0** | **0** | **all 0** |
+
+Revision 3 used actual loopback HTTP for both complete-series cases and actual Playwright/Microsoft Edge for Browser suites. The raw-source SHA-256 values were identical before and after execution. The protected Revision 2 Browser integration test retained SHA-256 `9497bf15d0cf2adbcd1c0b4717c8d66350364338e906c33cd963298598efdf16`.
 
 Actual Browser execution used Microsoft Edge `158.0.4370.33` through Playwright `1.55.0`, headless at a 1440×1000 viewport. Browser cases exercised real loopback HTTP, DOM selection, locator/settings rendering, SVG series mapping, Test RUL, Train RUL absence, and an isolated error presentation. No required Browser case was skipped.
 

@@ -203,6 +203,50 @@ class FD001SystemIntegrationTests(unittest.TestCase):
         # its isolated fault injection is covered by the accepted API regression suite.
         self.assertIn("EMPTY_QUERY_RESULT", CONTRACT["query_boundaries"])
 
+    def test_07_independent_raw_to_sensor_series(self) -> None:
+        cases = (
+            ("test", 100, "sensor_02", 7, 100),
+            ("train", 1, "sensor_01", 6, 96),
+        )
+        for split, unit, sensor, raw_column, selected_cycle in cases:
+            with self.subTest(split=split, unit=unit, sensor=sensor):
+                # The oracle is constructed only from authorized raw text rows,
+                # in their original order. It does not use Catalog or API data.
+                expected_rows = self.unit_rows(split, unit)
+                envelope = self.request(
+                    "/api/v1/sensor-series",
+                    split=split,
+                    unit_id=unit,
+                    sensor_id=sensor,
+                )
+                self.assertTrue(envelope["ok"])
+                self.assertIsNone(envelope["error"])
+                actual = envelope["data"]
+                self.assertEqual(actual["dataset_split"], split)
+                self.assertEqual(actual["unit_id"], unit)
+                self.assertEqual(actual["sensor_id"], sensor)
+                self.assertEqual(actual["source_file"], f"data/FD001/{split}_FD001.txt")
+                self.assertEqual(actual["source_sha256"], SOURCE_HASHES[split])
+                self.assertEqual(actual["raw_column_index"], raw_column)
+                self.assertEqual(actual["sample_count"], len(expected_rows))
+                self.assertEqual(actual["cycle_start"], expected_rows[0]["cycle"])
+                self.assertEqual(actual["cycle_end"], expected_rows[-1]["cycle"])
+
+                actual_points = actual["points"]
+                self.assertEqual(len(actual_points), len(expected_rows))
+                sensor_index = raw_column - 1
+                for expected_row, actual_point in zip(expected_rows, actual_points):
+                    self.assertEqual(
+                        set(actual_point),
+                        {"cycle", "value", "raw_line_number", "parsed_row_index", "raw_value"},
+                    )
+                    self.assertEqual(actual_point["cycle"], expected_row["cycle"])
+                    self.assertEqual(actual_point["value"], expected_row["values"][sensor_index])
+                    self.assertEqual(actual_point["raw_value"], expected_row["tokens"][sensor_index])
+                    self.assertEqual(actual_point["raw_line_number"], expected_row["line"])
+                    self.assertEqual(actual_point["parsed_row_index"], expected_row["index"])
+                self.assertIn(selected_cycle, [point["cycle"] for point in actual_points])
+
 
 if __name__ == "__main__":
     unittest.main()

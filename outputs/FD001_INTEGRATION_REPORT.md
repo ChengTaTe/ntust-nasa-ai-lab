@@ -16,6 +16,13 @@
 
 This Worker report does not declare Engineering Brain PASS or M3 Overall PASS.
 
+### Revision history and current bounded rework
+
+- Revision 1 produced the original M3 integration submission at `a223bb75ca4b97e2e21ea6375d20fd50a7a717d7`.
+- Revision 2 resolved Engineering finding `M3-EW-001`; accepted commit `1f6581736bfd08689cb6d8905e11c8c191ea7492` and SVG coordinate verification remain retained.
+- Revision 3 addresses only Research review finding `M3-R-001` from `WO-M3-002`: independent raw-text evidence for the complete API Sensor series used by the two accepted SVG cases.
+- Revision 3 status is `PENDING_BRAIN_REVIEW`; Engineering rework acceptance and MAIN-coordinated Research recheck remain pending.
+
 ## Accepted prerequisites
 
 M0 and M1 final acceptance, M2-G/M2-A/M2-B final acceptance, and M2 overall PASS were supplied as the formal execution basis. Accepted commits used by this integration are:
@@ -62,7 +69,7 @@ The required commands were executed with the explicit interpreter in place of `p
 & 'C:\Users\user\AppData\Local\Python\pythoncore-3.15-64\python.exe' -m unittest discover -s tests -p "test_fd001_integration_browser.py" -v
 ```
 
-All six final executions returned exit code 0: 25 Research regression, 15 API, 5 Website, 19 Browser UAT, 6 M3 HTTP integration, and 4 M3 Browser integration cases passed. Total: 74 passed, 0 failed, 0 skipped.
+The Revision 1/2 executions returned exit code 0: 25 Research regression, 15 API, 5 Website, 19 Browser UAT, 6 M3 HTTP integration, and 4 M3 Browser integration cases passed. Historical total: 74 passed, 0 failed, 0 skipped.
 
 An earlier non-elevated M3 HTTP run returned exit code 1 because the managed sandbox rejected loopback connections with Windows error 10013. The identical suite was rerun with local-loopback permission and passed. This is recorded as an execution-environment constraint, not a product failure; expected values and coverage were not changed. A subsequent small test-harness correction closed `HTTPError` response objects to remove resource warnings and did not change assertions.
 
@@ -75,6 +82,7 @@ An earlier non-elevated M3 HTTP run returned exit code 1 because the managed san
 - RUL: RUL row `n` mapped to Test Unit `n` for Units 1/50/100. Train RUL returned the unsupported boundary and the UI displayed no fabricated RUL.
 - API-to-Website: actual Edge verified selected values, settings, raw locator, statistical DOM, SVG point count/dot, RUL, and distinct error rendering.
 - SVG coordinate rework `M3-EW-001`: actual Path X/Y coordinates were compared with an independent test oracle for first/lower-middle/last API series points, and selected Cycle dot coordinates were verified for Test Unit 100 Sensor 02 (nonconstant) and Train Unit 1 Sensor 01 (constant). The accepted `toFixed(2)` Path representation uses a fixed `0.0051 px` tolerance; unrounded dot coordinates use `1e-9 px`.
+- Raw-to-series rework `M3-R-001` from `WO-M3-002`: Revision 3 independently tokenized the complete raw rows for Test Unit 100/Sensor 02 (198 points) and Train Unit 1/Sensor 01 (192 points). Actual loopback HTTP success envelopes were checked for full series metadata, equal length before iteration, and every point's Cycle, parsed value, raw token, raw line number, and parsed row index in original order. Selected Cycles 100 and 96 were present. Comparisons were exact with no numeric tolerance.
 - Integrity: accepted regression verified missing, hash mismatch, post-start change, disappearance, sticky failure, and restart-required behavior using isolation/mocks rather than formal raw mutation.
 - Stale requests: accepted Browser regression deterministically verified delayed Split/Unit/Sensor/Cycle success and error responses cannot replace current state.
 
@@ -97,3 +105,5 @@ The M3 persistent deliverables are:
 Final deliverable SHA-256, commit identity/parent/object format, push result, remote file verification, and final worktree status are reported in the Worker Return after commit and remote verification; the report intentionally does not create a follow-up commit merely to embed its own commit SHA.
 
 Revision 2 is a bounded rework for Engineering Brain finding `M3-EW-001`. It modifies only the Browser integration test and the Evidence/Report documents listed by the rework authorization; no M2 website code or accepted raw-data expectation was changed.
+
+Revision 3 is a bounded rework for `M3-R-001`. It modifies only `tests/test_fd001_integration.py` and the Evidence/Report documents. The six Revision 3 executions returned exit code 0: 25 Research, 15 API, 5 Website, 19 Browser UAT, 7 M3 HTTP integration, and 4 M3 Browser integration tests passed, for 75 passed, 0 failed, and 0 skipped. The Revision 2 Browser integration test and `FD001_SYSTEM_INTEGRATION.md` were not modified.
