@@ -4,14 +4,14 @@
 
 - WORK_ITEM_ID: `WO-M2-002`
 - CHILD_WORK_ITEM_ID: `WO-M2-002-WW-001`
-- Revision: `1`
+- Revision: `2`
 - Accepted M2-A Commit: `0dc22ace2616a4b3efb7caab1050ddb27c6f113c`
 - Data Contract: `1.0.0`
 - MAIN M2-A PASS: confirmed by the formal work order
 - STUDENT M2-B authorization: `APPROVED`
 - MAIN M2-B Execution Release: `GRANTED`
 - Web Brain Governance Preflight: `PASS`
-- Initial local/remote main SHA: `0dc22ace2616a4b3efb7caab1050ddb27c6f113c`
+- Revision 2 rework baseline: `866152a8c1bb0a6a075053d7d922d05e1cc28f62`
 
 Historical pending/not-granted fields in the accepted governance documents were treated as historical snapshots under the explicit work-order release. No governance file was edited.
 
@@ -19,7 +19,13 @@ Historical pending/not-granted fields in the accepted governance documents were 
 
 The backend is Python standard library `ThreadingHTTPServer` plus a bounded `BaseHTTPRequestHandler`. `web.api.FD001API` reuses the accepted `tools.profile_fd001.FD001Catalog`, validates the three accepted source hashes and structural/quality gates, and serves a single in-memory snapshot. Source hashes are checked again for every query; detected changes disable normal queries.
 
-The frontend is semantic HTML, responsive CSS, and vanilla JavaScript. A native SVG chart renders raw per-Cycle values without smoothing, interpolation, normalization, or imputation. `AbortController` plus a monotonic request version prevents stale asynchronous responses from being labeled as a newer selection. No CDN, third-party analytics, cloud database, external data API, or public deployment is used.
+The frontend is semantic HTML, responsive CSS, and vanilla JavaScript. A native SVG chart renders raw per-Cycle values without smoothing, interpolation, normalization, or imputation. Revision 2 places Split, Unit, Cycle, Sensor and detail requests in one transaction model: every selection change increments a monotonic version, aborts the previous controller, clears stale detail/RUL state, and validates both the transaction and complete selection snapshot before any DOM write or error display. No CDN, third-party analytics, cloud database, external data API, or public deployment is used.
+
+## Revision 2 rework findings
+
+- `M2B-WW-001`: Resolved by unified selector transactions, downstream selector reset, immediate stale-view/RUL clearing, current-selection verification and deterministic out-of-order browser tests. Late successes and late errors cannot update the DOM.
+- `M2B-WW-002`: Resolved by calling the accepted Catalog split boundary before indexing split-keyed analysis data. All split-bearing routes now return `INVALID_SPLIT` for an invalid split; `data-quality` is explicitly covered.
+- `M2B-WW-003`: Resolved with isolated tests for missing sources, present-but-hash-mismatched sources, post-startup mutation, post-startup disappearance, query blocking, accurate status and restart-required sticky failure. Formal raw files were never changed.
 
 ## Functional coverage
 
@@ -48,9 +54,9 @@ Known Train and Test Unit 1 / Cycle 1 / Sensor 01 locators both resolved to raw 
 | Suite | Command | Result |
 | --- | --- | --- |
 | Research regression | `python -m unittest discover -s tests -p "test_fd001.py" -v` | 25 passed, 0 failed |
-| API / contract | `python -m unittest discover -s tests -p "test_fd001_api.py" -v` | 11 passed, 0 failed |
+| API / contract and integrity | `python -m unittest discover -s tests -p "test_fd001_api.py" -v` | 15 passed, 0 failed |
 | HTTP / static security | `python -m unittest discover -s tests -p "test_fd001_web.py" -v` | 5 passed, 0 failed |
-| Actual Browser UAT | `python -m unittest discover -s tests -p "test_fd001_browser.py" -v` | 15 passed, 0 failed |
+| Actual Browser UAT and deterministic races | `python -m unittest discover -s tests -p "test_fd001_browser.py" -v` | 19 passed, 0 failed |
 
 Browser evidence: Playwright 1.55.0 drove installed Microsoft Edge Chromium 158.0.4370.33 at 1440×1000. Detailed steps and results are in `outputs/FD001_BROWSER_UAT.md`.
 

@@ -108,13 +108,22 @@ class FD001API:
             raise APIError("SOURCE_INTEGRITY_FAILURE", "Validated FD001 data is unavailable.")
         try:
             if self._current_hashes() != self._verified_hashes:
-                self.integrity_error = "FD001 source changed after snapshot validation."
-                self.catalog = None
-                raise APIError("SOURCE_INTEGRITY_FAILURE", self.integrity_error)
-        except OSError as exc:
+                raise APIError(
+                    "SOURCE_INTEGRITY_FAILURE",
+                    "FD001 source changed after snapshot validation.",
+                )
+        except (OSError, APIError) as exc:
+            # Integrity loss is sticky for this process. A normal query must not
+            # silently recover from a transient disappearance or mutation by
+            # comparing hashes alone; restart is required for full validation
+            # and construction of a new coherent in-memory snapshot.
             self.integrity_error = str(exc)
             self.catalog = None
-            raise APIError("SOURCE_INTEGRITY_FAILURE", "FD001 source revalidation failed.") from exc
+            self.analysis = None
+            raise APIError(
+                "SOURCE_INTEGRITY_FAILURE",
+                "FD001 source revalidation failed; restart is required.",
+            ) from exc
         return self.catalog
 
     @staticmethod
@@ -185,8 +194,10 @@ class FD001API:
             split = values["split"]
             if path.endswith("units"):
                 return {"dataset_split": split, "units": catalog.list_units(split)}
-            dataset = self.analysis["datasets"][split] if self.analysis else None
+            # Validate through the accepted Catalog boundary before indexing
+            # split-keyed analysis dictionaries.
             quality = catalog.get_data_quality_summary(split)
+            dataset = self.analysis["datasets"][split] if self.analysis else None
             return {
                 "dataset_split": split,
                 "source_file": dataset.relative_path,

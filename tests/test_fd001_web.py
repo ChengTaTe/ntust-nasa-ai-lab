@@ -39,7 +39,7 @@ class FD001WebTests(unittest.TestCase):
                 exc.close()
 
     def test_static_allowlist_and_security_headers(self) -> None:
-        for path, marker in (("/", b"FD001 Health Analytics"), ("/styles.css", b":root"), ("/app.js", b"requestVersion")):
+        for path, marker in (("/", b"FD001 Health Analytics"), ("/styles.css", b":root"), ("/app.js", b"beginTransition")):
             status, body, headers = self.request(path)
             self.assertEqual(status, 200)
             self.assertIn(marker, body)

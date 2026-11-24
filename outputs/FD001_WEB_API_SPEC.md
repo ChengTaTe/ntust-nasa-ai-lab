@@ -29,7 +29,7 @@
 | `GET /api/v1/sensor-series` | `split`, `unit_id`, `sensor_id` | Web display adapter; current Unit/Sensor cycle series with line/index traceability |
 | `GET /api/v1/status` | None | Dataset/contract/trust identity, availability and local validation status |
 
-All parameters must appear exactly once. Unknown, empty, duplicate, missing, or route-inapplicable parameters are rejected. Positive integers use canonical decimal form without signs or leading zeroes.
+All parameters must appear exactly once. Unknown, empty, duplicate, missing, or route-inapplicable parameters are rejected. Positive integers use canonical decimal form without signs or leading zeroes. Every split-bearing route validates the split through the accepted Catalog query boundary before accessing split-keyed analysis data; `/api/v1/data-quality?split=invalid` therefore returns HTTP 400 with `INVALID_SPLIT`.
 
 ## Traceability fields
 
@@ -60,6 +60,6 @@ Raw row fields retain `dataset_id`, `dataset_split`, `source_file`, `source_sha2
 
 ## Integrity and security
 
-At startup, the service verifies accepted SHA-256 values, 26-column Train/Test structure, one-column RUL structure, Unit/Cycle continuity, RUL alignment, and the accepted quality gate through `FD001Catalog` inputs. It serves the resulting validated in-memory snapshot. Each query rechecks source hashes; any change disables normal data queries until restart and successful full validation.
+At startup, the service verifies accepted SHA-256 values, 26-column Train/Test structure, one-column RUL structure, Unit/Cycle continuity, RUL alignment, and the accepted quality gate through `FD001Catalog` inputs. It serves the resulting validated in-memory snapshot. Each query rechecks source availability and hashes. A missing, mismatched, changed or disappeared source permanently invalidates that process snapshot, clears its Catalog/analysis references and returns `SOURCE_INTEGRITY_FAILURE`. Merely restoring the file cannot resume queries; restart and complete startup validation are required. `/api/v1/status` reports `data_available: false` and `validation_status: SOURCE_INTEGRITY_FAILURE` while disabled.
 
 The bind address is fixed to `127.0.0.1`. Static files use an explicit allowlist. There is no arbitrary path input, directory server, path traversal, upload, mutation, external request, public bind, or complete-dataset download endpoint. A restrictive Content Security Policy permits only same-origin scripts, styles, images and API connections.

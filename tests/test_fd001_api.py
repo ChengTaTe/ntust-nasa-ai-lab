@@ -36,6 +36,16 @@ class FD001APITests(unittest.TestCase):
         self.assertIsNone(envelope["data"])
         self.assertEqual(envelope["error"]["code"], code)
 
+    def isolated_snapshot(self) -> FD001API:
+        isolated = object.__new__(FD001API)
+        isolated.project_root = self.api.project_root
+        isolated.data_root = self.api.data_root
+        isolated._verified_hashes = dict(self.api._verified_hashes)
+        isolated.catalog = self.api.catalog
+        isolated.analysis = self.api.analysis
+        isolated.integrity_error = None
+        return isolated
+
     def test_status_and_contract_identity(self) -> None:
         data = self.ok("/api/v1/status")
         self.assertEqual(data["dataset_id"], "NASA_CMAPSS_FD001_LOCAL")
@@ -108,6 +118,23 @@ class FD001APITests(unittest.TestCase):
         self.error("UNSUPPORTED_RUL_QUERY", 400, "/api/v1/test-rul", split="train", unit_id=1)
         self.error("NOT_FOUND", 404, "/api/v1/nope")
 
+    def test_invalid_split_routes_preserve_contract_error(self) -> None:
+        routes = (
+            ("/api/v1/units", {"split": "invalid"}),
+            ("/api/v1/cycles", {"split": "invalid", "unit_id": 1}),
+            ("/api/v1/raw-row", {"split": "invalid", "unit_id": 1, "cycle": 1}),
+            ("/api/v1/sensor-trend", {"split": "invalid", "unit_id": 1, "sensor_id": "sensor_01"}),
+            ("/api/v1/operational-settings", {"split": "invalid", "unit_id": 1, "cycle": 1}),
+            ("/api/v1/data-quality", {"split": "invalid"}),
+            ("/api/v1/test-rul", {"split": "invalid", "unit_id": 1}),
+            ("/api/v1/raw-source-locator", {"split": "invalid", "unit_id": 1, "cycle": 1, "field_name": "sensor_01"}),
+            ("/api/v1/sensor-series", {"split": "invalid", "unit_id": 1, "sensor_id": "sensor_01"}),
+        )
+        for route, params in routes:
+            with self.subTest(route=route):
+                self.error("INVALID_SPLIT", 400, route, **params)
+        self.assertEqual(self.ok("/api/v1/data-quality", split="train")["quality_gate"], "PASS")
+
     def test_empty_query_result_boundary_with_isolated_substitute(self) -> None:
         with mock.patch.object(
             self.api.catalog,
@@ -123,12 +150,58 @@ class FD001APITests(unittest.TestCase):
         self.error("INVALID_REQUEST", 400, "/api/v1/units", split="train", file="secret")
         self.error("INVALID_REQUEST", 400, "/api/v1/cycles", split="train", unit_id="01")
 
-    def test_source_hash_failure_disables_queries(self) -> None:
+    def test_required_source_missing_disables_queries_and_status(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             broken = FD001API(Path(temp))
             status, payload = broken.handle("/api/v1/splits", {})
             self.assertEqual(status, 503)
             self.assertEqual(payload["error"]["code"], "SOURCE_INTEGRITY_FAILURE")
+            status, payload = broken.handle("/api/v1/status", {})
+            self.assertEqual(status, 200)
+            self.assertFalse(payload["data"]["data_available"])
+            self.assertEqual(payload["data"]["validation_status"], "SOURCE_INTEGRITY_FAILURE")
+
+    def test_existing_sources_with_hash_mismatch_disable_queries(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            data_root = root / "data" / "FD001"
+            data_root.mkdir(parents=True)
+            for filename in ("train_FD001.txt", "test_FD001.txt", "RUL_FD001.txt"):
+                (data_root / filename).write_text("present but not accepted\n", encoding="ascii")
+            broken = FD001API(root)
+            self.assertIn("hash validation failed", broken.integrity_error)
+            status, payload = broken.handle("/api/v1/units", {"split": ["train"]})
+            self.assertEqual(status, 503)
+            self.assertEqual(payload["error"]["code"], "SOURCE_INTEGRITY_FAILURE")
+
+    def test_source_change_after_snapshot_is_sticky(self) -> None:
+        isolated = self.isolated_snapshot()
+        changed = dict(isolated._verified_hashes)
+        changed["train"] = "0" * 64
+        with mock.patch.object(isolated, "_current_hashes", return_value=changed):
+            status, payload = isolated.handle("/api/v1/splits", {})
+        self.assertEqual(status, 503)
+        self.assertEqual(payload["error"]["code"], "SOURCE_INTEGRITY_FAILURE")
+        self.assertIsNone(isolated.catalog)
+        status, payload = isolated.handle("/api/v1/status", {})
+        self.assertEqual(status, 200)
+        self.assertFalse(payload["data"]["data_available"])
+        status, payload = isolated.handle("/api/v1/splits", {})
+        self.assertEqual(status, 503)
+        self.assertEqual(payload["error"]["code"], "SOURCE_INTEGRITY_FAILURE")
+
+    def test_source_disappearance_after_startup_requires_restart(self) -> None:
+        isolated = self.isolated_snapshot()
+        with mock.patch.object(isolated, "_current_hashes", side_effect=OSError("source disappeared")):
+            status, payload = isolated.handle("/api/v1/units", {"split": ["train"]})
+        self.assertEqual(status, 503)
+        self.assertEqual(payload["error"]["code"], "SOURCE_INTEGRITY_FAILURE")
+        self.assertIn("source disappeared", isolated.integrity_error)
+        # Even though the real files are visible again after the substitute is
+        # removed, this process cannot resume without full startup validation.
+        status, payload = isolated.handle("/api/v1/units", {"split": ["train"]})
+        self.assertEqual(status, 503)
+        self.assertEqual(payload["error"]["code"], "SOURCE_INTEGRITY_FAILURE")
 
 
 if __name__ == "__main__":
