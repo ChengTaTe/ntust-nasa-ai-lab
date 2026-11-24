@@ -74,6 +74,7 @@ An earlier non-elevated M3 HTTP run returned exit code 1 because the managed san
 - Trend/statistics: four representative constant/nonconstant cases across Train/Test and different Unit lengths were independently recomputed. Slope and Pearson tolerance was fixed at `1e-12` absolute; other values were exact.
 - RUL: RUL row `n` mapped to Test Unit `n` for Units 1/50/100. Train RUL returned the unsupported boundary and the UI displayed no fabricated RUL.
 - API-to-Website: actual Edge verified selected values, settings, raw locator, statistical DOM, SVG point count/dot, RUL, and distinct error rendering.
+- SVG coordinate rework `M3-EW-001`: actual Path X/Y coordinates were compared with an independent test oracle for first/lower-middle/last API series points, and selected Cycle dot coordinates were verified for Test Unit 100 Sensor 02 (nonconstant) and Train Unit 1 Sensor 01 (constant). The accepted `toFixed(2)` Path representation uses a fixed `0.0051 px` tolerance; unrounded dot coordinates use `1e-9 px`.
 - Integrity: accepted regression verified missing, hash mismatch, post-start change, disappearance, sticky failure, and restart-required behavior using isolation/mocks rather than formal raw mutation.
 - Stale requests: accepted Browser regression deterministically verified delayed Split/Unit/Sensor/Cycle success and error responses cannot replace current state.
 
@@ -85,7 +86,7 @@ The conclusion is limited to the STUDENT-trusted local files and accepted implem
 
 ## Deliverables and limitations
 
-The only persistent additions are:
+The M3 persistent deliverables are:
 
 1. `tests/test_fd001_integration.py`
 2. `tests/test_fd001_integration_browser.py`
@@ -94,3 +95,5 @@ The only persistent additions are:
 5. `outputs/FD001_INTEGRATION_REPORT.md`
 
 Final deliverable SHA-256, commit identity/parent/object format, push result, remote file verification, and final worktree status are reported in the Worker Return after commit and remote verification; the report intentionally does not create a follow-up commit merely to embed its own commit SHA.
+
+Revision 2 is a bounded rework for Engineering Brain finding `M3-EW-001`. It modifies only the Browser integration test and the Evidence/Report documents listed by the rework authorization; no M2 website code or accepted raw-data expectation was changed.

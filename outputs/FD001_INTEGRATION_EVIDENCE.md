@@ -29,7 +29,7 @@
 | INT-007 | TASK-04/07 | seven contract boundaries | accepted contract JSON and isolated failure injection | Catalog/API/HTTP | exact code/status | PASS; six natural invalid requests plus accepted isolated `EMPTY_QUERY_RESULT` regression |
 | INT-008 | TASK-06, AC-09 | Train U1 S01; Train U100 S02; Test U50 S07; Test U100 S01 | independent OLS/Pearson calculation from raw rows | raw → API trend | `1e-12` absolute for slope/correlation; exact other fields | PASS; constant/nonconstant, both splits, different lengths |
 | INT-009 | TASK-05, AC-08 | Train U50 C100 S21 | Browser request output compared with DOM | API → DOM value/settings/locator | exact numeric conversion | PASS; actual Edge |
-| INT-010 | TASK-05/06 | Test U100 C100 S02 | series count and trend fields from API | API series → SVG path/dot/stat DOM | exact count/text | PASS; actual Edge |
+| INT-010 | TASK-05/06, M3-EW-001 | Test U100 C100 S02; Train U1 C96 S01 | independently apply accepted 900×350 SVG viewBox, padding, X/Y scaling, and constant-series margin to API series | API series → SVG first/middle/last path coordinates, selected dot, and stat DOM | Path `0.0051 px`; dot `1e-9 px`; exact count/text | PASS; actual Edge, nonconstant and constant series |
 | INT-011 | AC-10 | Test Unit 1/50/100; Train Unit 1 | direct RUL row `n → unit_id n`; unsupported Train query | raw RUL → API → Browser | exact | PASS; Train shows no fabricated RUL |
 | INT-012 | TASK-05/07 | intercepted integrity failure | isolated Browser route fault | API failure → distinct Browser error state | exact error kind | PASS; normal value cleared |
 | INT-013 | TASK-07, AC-11 | missing/mismatch/change/disappearance | temporary roots and method mocks in accepted regression | source guard → sticky API failure | exact | PASS; restart-required behavior verified |
@@ -59,6 +59,10 @@ The test oracle computes `N`, Cycle range, start, end, change, OLS slope, and Pe
 | **Total** | **74** | **0** | **0** | **all 0** |
 
 Actual Browser execution used Microsoft Edge `158.0.4370.33` through Playwright `1.55.0`, headless at a 1440×1000 viewport. Browser cases exercised real loopback HTTP, DOM selection, locator/settings rendering, SVG series mapping, Test RUL, Train RUL absence, and an isolated error presentation. No required Browser case was skipped.
+
+### SVG coordinate verification precision
+
+The Browser integration test independently reconstructs the accepted chart geometry from the actual API Sensor series: SVG viewBox `900×350`, padding left/right/top/bottom `68/28/24/48`, linear Cycle X scaling, linear Sensor-value Y scaling, and for a constant series the accepted symmetric margin `max(abs(value) × 0.01, 1)`. It compares the first, lower-middle, and last Path coordinates plus the selected Cycle dot. Because `app.js` serializes Path coordinates with `toFixed(2)`, the fixed tolerance is `0.0051 px` (the `0.005 px` maximum decimal quantization error plus a `0.0001 px` floating-point boundary allowance). Dot attributes are not deliberately rounded, so their fixed tolerance is `1e-9 px`. These tolerances were established from the accepted rendering rule before execution and were not widened to obtain a pass.
 
 ## Integrity and fault behavior
 
