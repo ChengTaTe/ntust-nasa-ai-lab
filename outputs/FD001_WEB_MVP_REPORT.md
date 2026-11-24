@@ -48,7 +48,7 @@ Known Train and Test Unit 1 / Cycle 1 / Sensor 01 locators both resolved to raw 
 | Suite | Command | Result |
 | --- | --- | --- |
 | Research regression | `python -m unittest discover -s tests -p "test_fd001.py" -v` | 25 passed, 0 failed |
-| API / contract | `python -m unittest discover -s tests -p "test_fd001_api.py" -v` | 10 passed, 0 failed |
+| API / contract | `python -m unittest discover -s tests -p "test_fd001_api.py" -v` | 11 passed, 0 failed |
 | HTTP / static security | `python -m unittest discover -s tests -p "test_fd001_web.py" -v` | 5 passed, 0 failed |
 | Actual Browser UAT | `python -m unittest discover -s tests -p "test_fd001_browser.py" -v` | 15 passed, 0 failed |
 

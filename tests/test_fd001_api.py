@@ -5,7 +5,9 @@ import math
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
+from tools.profile_fd001 import QueryError
 from web.api import FD001API
 
 
@@ -105,6 +107,14 @@ class FD001APITests(unittest.TestCase):
         self.error("MISSING_DATA", 503, "/api/v1/raw-source-locator", split="train", unit_id=1, cycle=1, field_name="bad")
         self.error("UNSUPPORTED_RUL_QUERY", 400, "/api/v1/test-rul", split="train", unit_id=1)
         self.error("NOT_FOUND", 404, "/api/v1/nope")
+
+    def test_empty_query_result_boundary_with_isolated_substitute(self) -> None:
+        with mock.patch.object(
+            self.api.catalog,
+            "list_units",
+            side_effect=QueryError("EMPTY_QUERY_RESULT", "Valid query returned no rows."),
+        ):
+            self.error("EMPTY_QUERY_RESULT", 404, "/api/v1/units", split="train")
 
     def test_invalid_missing_duplicate_and_extra_parameters(self) -> None:
         self.error("INVALID_REQUEST", 400, "/api/v1/units")
