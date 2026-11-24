@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FD001 Health Analytics</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">NASA C-MAPSS · LOCAL EVIDENCE VIEW</p>
+      <h1>FD001 Health Analytics</h1>
+      <p class="subtitle">以本地唯讀資料追蹤每一個 Engine Unit、Cycle 與 Sensor 數值。</p>
+    </div>
+    <div id="status-card" class="status-card" aria-live="polite">
+      <span class="pulse"></span><strong id="validation-status">載入中</strong>
+      <span id="dataset-id">—</span><span id="contract-version">—</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="controls panel" aria-label="查詢選擇器">
+      <label>Dataset Split<select id="split-select" disabled></select></label>
+      <label>Engine Unit<select id="unit-select" disabled></select></label>
+      <label>Cycle<select id="cycle-select" disabled></select></label>
+      <label>Sensor<select id="sensor-select" disabled></select></label>
+      <div id="ui-state" class="ui-state" role="status">正在驗證本地資料…</div>
+    </section>
+
+    <section id="error-panel" class="error-panel hidden" role="alert"></section>
+
+    <section class="grid top-grid">
+      <article class="panel chart-panel">
+        <div class="section-heading"><div><p class="eyebrow">SENSOR TREND</p><h2 id="chart-title">趨勢圖</h2></div><div id="range-badge" class="badge">—</div></div>
+        <svg id="trend-chart" viewBox="0 0 900 350" role="img" aria-label="Sensor 趨勢圖"></svg>
+        <div id="trend-stats" class="stat-grid"></div>
+        <p class="note">趨勢為 OLS 與 Pearson 統計描述，不代表已確認的故障診斷。</p>
+      </article>
+
+      <aside class="panel snapshot">
+        <p class="eyebrow">CURRENT OBSERVATION</p><h2>當前資料點</h2>
+        <div class="big-value"><span id="selected-value">—</span><small id="selected-sensor">—</small></div>
+        <dl id="selection-summary"></dl>
+        <h3>Operational Settings</h3><div id="op-settings" class="op-grid"></div>
+        <div id="rul-panel" class="rul-panel hidden"><span>Test RUL</span><strong id="rul-value">—</strong><small>對應此 Test Unit 的最後觀測 Cycle</small></div>
+      </aside>
+    </section>
+
+    <section class="grid detail-grid">
+      <article class="panel"><div class="section-heading"><div><p class="eyebrow">26-COLUMN RECORD</p><h2>完整資料明細</h2></div></div><div class="table-wrap"><table><thead><tr><th>Raw col.</th><th>Canonical field</th><th>Raw token</th><th>Parsed value</th></tr></thead><tbody id="field-table"></tbody></table></div></article>
+      <article class="panel"><p class="eyebrow">RAW DATA LOCATOR</p><h2>來源追溯</h2><dl id="locator-detail" class="locator"></dl><p class="note">路徑為專案相對路徑；原始行號與欄號採 1-based，解析列索引採 0-based。</p></article>
+    </section>
+
+    <section class="panel quality-panel"><div class="section-heading"><div><p class="eyebrow">DATA QUALITY</p><h2>資料品質摘要</h2></div><span id="quality-gate" class="badge">—</span></div><div id="quality-summary" class="quality-grid"></div><div id="quality-limitations" class="limitations"></div></section>
+  </main>
+  <footer>本工具不宣稱已獨立驗證 NASA 官方來源；Sensor 物理名稱與單位維持 UNVERIFIED。</footer>
+  <script src="/app.js" defer></script>
+</body>
+</html>
