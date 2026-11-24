@@ -309,25 +309,72 @@ WO-M0-006 的 Worker 完成與 GitHub Push 不等於 Brain PASS。STUDENT-MAIN B
 - **AUTHORIZED_BY:** STUDENT
 - **AUTHORIZATION_STATUS:** `APPROVED`
 - **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
-- **CURRENT_STATUS:** `COMMAND_DISPATCHED`
+- **CURRENT_STATUS:** `PASS`
 - **RESEARCH_BRAIN_ACK:** `ACK`
-- **GOVERNANCE_PREFLIGHT:** `PENDING_RECHECK`
+- **GOVERNANCE_PREFLIGHT:** `PASS`
 - **RESEARCH_WORKER_WORK_ITEM_ID:** `WO-M1-001-RW-001`
+- **RESEARCH_WORKER_REVISION:** `2`
 - **RESEARCH_WORKER_DISPATCH_STATUS:** `COMMAND_DISPATCHED`
-- **RESEARCH_WORKER_EXECUTION_STATUS:** `BLOCKED`
-- **M1_COMPLETION_STATUS:** `NOT_COMPLETED`
+- **RESEARCH_WORKER_EXECUTION_STATUS:** `COMPLETED`
+- **RESEARCH_BRAIN_REVIEW:** `COMPLETED`
+- **RESEARCH_BRAIN_DECISION:** `PASS`
+- **RESEARCH_DOMAIN_ACCEPTANCE:** `PASS`
+- **GITHUB_REMOTE_VERIFICATION:** `PASS`
+- **MAIN_BRAIN_REVIEW:** `COMPLETED`
+- **MAIN_BRAIN_DECISION:** `PASS`
+- **M1_COMPLETION_STATUS:** `COMPLETED`
+- **ACCEPTED_COMMIT:** `0ba0a16c1e6904a389fef87b66389662cf0737b3`
 - **RETURN_TO:** STUDENT-MAIN Brain
 - **DATASET_PATH:** `data/synthetic_sensor.csv`
 - **DATASET_TYPE:** `Synthetic Sensor Data`
 - **EXPECTED_CSV_COUNT:** `1`
 - **EXPECTED_DATA_ROWS:** `6`
 - **HEADER_INCLUDED_IN_ROW_COUNT:** `NO`
-- **ACTUAL_DATA_ROWS:** `NOT_VERIFIED`
+- **ACTUAL_DATA_ROWS:** `6`
+- **COLUMN_COUNT:** `4`
+- **MISSING_VALUE_COUNT:** `1`
+- **DUPLICATE_ADDITIONAL_ROW_COUNT:** `1`
+- **CONTRACT_RESULT:** `MATCH`
+- **FORMAT_VALIDATION:** `PASS`
+- **DATASET_PROFILE:** `outputs/INTRO_PROFILE.md`
+- **REPRODUCIBLE_PROFILER:** `tools/profile_intro.py`
 
-### Research Brain Blocked History
+### Research Brain Blocked History — Historical Record
 
 Research Brain 曾因 GitHub 治理狀態尚未同步 M0 結案與 M1 正式授權而停止派工。該 BLOCKED 回報保留為歷史證據，不得改寫為已完成的 PASS。
 
 其後 Research Worker 工作單 `WO-M1-001-RW-001` 已正式派送，但執行狀態回報為 `BLOCKED`。本同步保留該 BLOCKED 歷史，不將其改寫為 PASS，亦不宣稱 Research Worker 已恢復執行。
 
-Research Brain 必須重新讀取 GitHub 最新治理文件並重做治理 preflight；目前治理預檢尚未宣告 PASS，實際資料列數仍未驗證，M1 亦未完成。本次同步屬於 M1 治理交接程序，不重新開啟 M0，也不建立需要再次同步驗收狀態的新循環。
+以上敘述為已過期但必須保留的歷史執行狀態。其後 Research Brain 已完成獨立審查並決定 PASS，STUDENT-MAIN Brain 亦已接受 M1 實質成果；目前狀態以本節上方的正式狀態欄位為準。
+
+### Accepted Evidence and Research Limitations
+
+- **ACCEPTED_RESEARCH_COMMIT:** `0ba0a16c1e6904a389fef87b66389662cf0737b3`
+- **ACCEPTED_RESEARCH_WORKER:** `WO-M1-001-RW-001`
+- **WORK_ORDER_REVISION:** `2`
+- **ACCEPTED_DELIVERABLES:** `outputs/INTRO_PROFILE.md`, `tools/profile_intro.py`
+- Dataset Profile 與可重現 profiler 為 Research Brain 及 STUDENT-MAIN Brain 接受之證據來源。
+- 原始 CSV 維持本地唯讀且未提交 GitHub；GitHub 僅保存分析文件與可重現工具。
+- 本資料為合成 Sensor 資料，不等於 NASA C-MAPSS FD001，亦不得外推為真實 FD001 整合成果。
+- 合成資料的生成來源限制已於 Dataset Profile 揭露並由 Brain 接受；該限制仍適用於後續解讀。
+
+---
+
+## M1 Final Closure Record
+
+- **CLOSURE_WORK_ITEM_ID:** `WO-M1-001-CLOSURE`
+- **TYPE:** `FINAL_M1_GOVERNANCE_CLOSURE`
+- **AUTHORIZED_BY:** STUDENT
+- **AUTHORIZATION_STATUS:** `APPROVED`
+- **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
+- **AUTHORIZED_WRITE_SCOPE:** `WORK_ITEM.md`, `ROADMAP.md`
+- **CLOSURE_BASIS:** Research Brain PASS and STUDENT-MAIN Brain M1 substantive-result PASS
+- **M0_GATE:** `PASS`
+- **M0_CLOSURE:** `FINAL`
+- **M1_GATE:** `PASS`
+- **M1_CLOSURE_STATUS:** `COMPLETED`
+- **M2_AUTHORIZATION:** `NOT_GRANTED`
+- **M2_EXECUTION:** `NOT_STARTED`
+- **SYNC_WORKER_STATUS:** `PENDING_MAIN_BRAIN_REVIEW`
+
+本工作單僅同步既有 M1 驗收決議，不屬於新的研究分析工作。Worker 完成 Commit 與 Push 不等於本同步工作單的 Brain PASS；由 STUDENT-MAIN Brain 完成遠端驗證後正式結案，且不另建立僅為同步本工作單 PASS 的後續工作單。

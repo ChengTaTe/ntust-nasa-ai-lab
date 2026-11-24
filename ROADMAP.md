@@ -25,6 +25,19 @@
 - **STOP_IF：** M0 未 PASS 或未獲 STUDENT 正式 M1 執行授權；資料來源、身分、數量或權限不明；需修改原始資料。
 - **下一角色：** STUDENT-MAIN Brain，進行里程碑閘門審查。
 
+### M1 Current Acceptance Record
+
+- **ACTUAL_DATA_ROWS:** `6`
+- **M1_GATE:** `PASS`
+- **M1_ACCEPTED_COMMIT:** `0ba0a16c1e6904a389fef87b66389662cf0737b3`
+- **Research Domain Acceptance:** `PASS`
+- **MAIN Brain Acceptance:** `PASS`
+- **Dataset Profile:** `COMPLETED` — `outputs/INTRO_PROFILE.md`
+- **Reproducible Profiler:** `COMPLETED` — `tools/profile_intro.py`
+- 原始 CSV 維持本地唯讀且未提交 GitHub。
+- 本資料為合成 Sensor 資料，不等於 NASA C-MAPSS FD001。
+- 合成資料的生成來源限制已於 Dataset Profile 揭露並由 Research Brain 與 STUDENT-MAIN Brain 接受。
+
 ## M2: Local Health Analytics Website MVP
 
 - **目標：** 建立本地健康分析網站 MVP，支援 Engine Unit、Cycle、Sensor 選擇，並顯示資料明細與 Sensor 趨勢。
