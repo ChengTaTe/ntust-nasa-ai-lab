@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 TOOLS = Path(__file__).resolve().parents[1] / "tools"
@@ -42,6 +43,25 @@ class FD001Tests(unittest.TestCase):
             fd.parse_data_file(test_path, "test", self.root),
             fd.parse_rul_file(rul_path, self.root),
         )
+
+    def write_build_fixture(self, train_cycles: tuple[int, int] = (1, 2)) -> None:
+        self.write(
+            "train_FD001.txt",
+            data_line(1, train_cycles[0]) + "\n" + data_line(1, train_cycles[1]) + "\n",
+        )
+        self.write(
+            "test_FD001.txt",
+            data_line(1, 1, 2.0) + "\n" + data_line(1, 2, 3.0) + "\n",
+        )
+        self.write("RUL_FD001.txt", "5  \n")
+
+    @staticmethod
+    def small_expected() -> dict[str, dict[str, int]]:
+        return {
+            "train": {"rows": 2, "columns": 26, "units": 1},
+            "test": {"rows": 2, "columns": 26, "units": 1},
+            "rul": {"rows": 1, "columns": 1},
+        }
 
     def test_whitespace_parser_and_trailing_space(self) -> None:
         path = self.write("train_FD001.txt", data_line(1, 1) + "\n")
@@ -184,6 +204,27 @@ class FD001Tests(unittest.TestCase):
         trends = fd.analyze_trends(train)
         self.assertEqual(trends["detail_count"], 21)
         self.assertEqual(trends["detail_count"], trends["expected_detail_count"])
+
+    def test_structural_failure_cannot_enter_trend_analysis(self) -> None:
+        self.write_build_fixture(train_cycles=(1, 3))
+        with (
+            mock.patch.object(fd, "EXPECTED", self.small_expected()),
+            mock.patch.object(fd, "analyze_trends") as analyze,
+        ):
+            with self.assertRaisesRegex(fd.ValidationError, "STRUCTURAL_VALIDATION_FAILED"):
+                fd.build_analysis(self.root, self.root)
+            analyze.assert_not_called()
+
+    def test_quality_failure_cannot_enter_trend_analysis(self) -> None:
+        self.write_build_fixture()
+        with (
+            mock.patch.object(fd, "EXPECTED", self.small_expected()),
+            mock.patch.object(fd, "count_full_row_duplicates", return_value=1),
+            mock.patch.object(fd, "analyze_trends") as analyze,
+        ):
+            with self.assertRaisesRegex(fd.ValidationError, "DATA_QUALITY_GATE failed"):
+                fd.build_analysis(self.root, self.root)
+            analyze.assert_not_called()
 
     def test_field_dictionary_has_26_stable_names(self) -> None:
         fields = fd.field_dictionary()

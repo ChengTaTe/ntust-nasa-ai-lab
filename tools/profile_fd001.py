@@ -769,7 +769,6 @@ def build_analysis(data_root: Path, project_root: Path) -> dict[str, object]:
     rul_alignment = validate_rul_alignment(test, rul)
 
     feature_stats = {split: feature_statistics(datasets[split]) for split in SPLITS}
-    trends = {split: analyze_trends(datasets[split]) for split in SPLITS}
     quality: dict[str, object] = {}
     for split in SPLITS:
         dataset = datasets[split]
@@ -826,6 +825,11 @@ def build_analysis(data_root: Path, project_root: Path) -> dict[str, object]:
         raise ValidationError("RUL alignment validation failed.")
     if not data_quality_gate:
         raise ValidationError("DATA_QUALITY_GATE failed.")
+
+    # Trend analysis is intentionally gated. No sensor trend calculation may
+    # run until structural checks, RUL alignment, and the complete data-quality
+    # gate have all passed.
+    trends = {split: analyze_trends(datasets[split]) for split in SPLITS}
 
     cycle_length_stats = {}
     for split in SPLITS:
