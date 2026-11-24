@@ -287,9 +287,14 @@ M0 已依 STUDENT 與 STUDENT-MAIN Brain 的驗收決議完成治理結案。Git
 - **AUTHORIZED_BY:** STUDENT
 - **AUTHORIZATION_SCOPE:** `FINAL_M0_CLOSURE`
 - **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
-- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **CURRENT_STATUS:** `PASS`
 - **RETURN_TO:** STUDENT-MAIN Brain
 - **OBJECTIVE:** 一次完成 M0 最終治理狀態同步，解除 M1 Research Brain 的治理狀態阻擋。
+- **BRAIN_REVIEW:** `COMPLETED`
+- **BRAIN_DECISION:** `PASS`
+- **REVIEWER:** STUDENT-MAIN Brain
+- **ACCEPTED_COMMIT:** `e5114d833cec7a6a7ae82a85c62bbabd7fc83271`
+- **ACCEPTED_COMMIT_URL:** <https://github.com/ChengTaTe/ntust-nasa-ai-lab/commit/e5114d833cec7a6a7ae82a85c62bbabd7fc83271>
 
 WO-M0-006 的 Worker 完成與 GitHub Push 不等於 Brain PASS。STUDENT-MAIN Brain 將從 GitHub 獨立驗收後正式結案；不要求另開工作單同步 WO-M0-006 的 PASS。
 
@@ -306,8 +311,10 @@ WO-M0-006 的 Worker 完成與 GitHub Push 不等於 Brain PASS。STUDENT-MAIN B
 - **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
 - **CURRENT_STATUS:** `COMMAND_DISPATCHED`
 - **RESEARCH_BRAIN_ACK:** `ACK`
-- **GOVERNANCE_PREFLIGHT:** `BLOCKED_PENDING_SYNC`
-- **RESEARCH_WORKER_DISPATCH_STATUS:** `NOT_DISPATCHED`
+- **GOVERNANCE_PREFLIGHT:** `PENDING_RECHECK`
+- **RESEARCH_WORKER_WORK_ITEM_ID:** `WO-M1-001-RW-001`
+- **RESEARCH_WORKER_DISPATCH_STATUS:** `COMMAND_DISPATCHED`
+- **RESEARCH_WORKER_EXECUTION_STATUS:** `BLOCKED`
 - **M1_COMPLETION_STATUS:** `NOT_COMPLETED`
 - **RETURN_TO:** STUDENT-MAIN Brain
 - **DATASET_PATH:** `data/synthetic_sensor.csv`
@@ -321,4 +328,6 @@ WO-M0-006 的 Worker 完成與 GitHub Push 不等於 Brain PASS。STUDENT-MAIN B
 
 Research Brain 曾因 GitHub 治理狀態尚未同步 M0 結案與 M1 正式授權而停止派工。該 BLOCKED 回報保留為歷史證據，不得改寫為已完成的 PASS。
 
-本次治理同步後，WO-M1-001 已正式派送至 Research Brain，但 Research Brain 必須先重新檢查 GitHub 最新治理規則；Research Own Worker 仍未派送，實際資料列數仍未驗證，M1 亦未完成。
+其後 Research Worker 工作單 `WO-M1-001-RW-001` 已正式派送，但執行狀態回報為 `BLOCKED`。本同步保留該 BLOCKED 歷史，不將其改寫為 PASS，亦不宣稱 Research Worker 已恢復執行。
+
+Research Brain 必須重新讀取 GitHub 最新治理文件並重做治理 preflight；目前治理預檢尚未宣告 PASS，實際資料列數仍未驗證，M1 亦未完成。本次同步屬於 M1 治理交接程序，不重新開啟 M0，也不建立需要再次同步驗收狀態的新循環。
