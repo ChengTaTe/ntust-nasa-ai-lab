@@ -1,6 +1,6 @@
 # Architecture and Governance Decision Log
 
-本文件僅記錄 WO-M0-001 已核准的治理決策；未經驗證的技術選擇不得寫成既定事實。
+本文件記錄所有經 STUDENT 核准的專案治理與架構決策；未經驗證的技術選擇不得寫成既定事實。
 
 ## DEC-001: Bounded Brain-Worker Governance
 
@@ -95,3 +95,48 @@
   4. 原始 CSV 維持唯讀。
   5. 合成資料不得冒充 NASA C-MAPSS FD001。
   6. M1 須另行取得 STUDENT 正式執行授權。
+
+## DEC-012: Data First Development Sequence
+
+- **Date:** 2026-11-24
+- **Status:** ACCEPTED
+- **Authorized By:** STUDENT
+- **Context:** FD001 網站開發必須先建立可查核的資料契約，避免網站自行推定資料語意。
+- **Decision:** 採用 `M2-G Governance Alignment → M2-A FD001 Data Validation → Data Contract Acceptance → M2-B Local Website MVP → M3 System Integration → M4 Evidence Prompt → M5 Final Acceptance` 的 Data First 順序；M0、M1 已驗收成果維持不變。
+- **Consequences:** 各階段必須依序取得必要驗收、授權與 Release，禁止提前執行網站或後續工作。
+
+## DEC-013: Student-Trusted Local FD001 Files
+
+- **Date:** 2026-11-24
+- **Status:** ACCEPTED
+- **Authorized By:** STUDENT
+- **Context:** STUDENT 已指定並信任本地 `train_FD001.txt`、`test_FD001.txt`、`RUL_FD001.txt` 作為 M2-A 輸入。
+- **Decision:** M2-A 不要求重新上網核對 NASA 來源，且禁止重新下載或替換資料；來源信任與本地檔案完整性驗證為不同事項。STUDENT 信任政策不取代檔案存在性、SHA-256、行列數、欄位、Unit/Cycle、RUL 對應及資料品質驗證，亦不得宣稱已獨立驗證 NASA 官方來源。
+- **Consequences:** 原始資料維持唯讀、不得上傳；本決議不撤銷 DEC-009。
+
+## DEC-014: Data Contract Before Website Development
+
+- **Date:** 2026-11-24
+- **Status:** ACCEPTED
+- **Authorized By:** STUDENT
+- **Context:** 網站查詢、顯示與趨勢功能必須依賴穩定且已驗收的 FD001 資料語意。
+- **Decision:** FD001 Data Contract 必須先取得 Research Brain 與 STUDENT-MAIN Brain 驗收；STUDENT-WEB Brain 僅能使用已接受契約進行正式網站開發。Data Contract 未驗收前不得啟動 M2-B，網站不得自行變更資料語意、索引、欄位或原始數值。
+- **Consequences:** M2-A PASS 不等於整體 M2 PASS；M2-B 仍須 STUDENT 正式授權。
+
+## DEC-015: Milestone-Aware Governance and Release
+
+- **Date:** 2026-11-24
+- **Status:** ACCEPTED
+- **Authorized By:** STUDENT
+- **Context:** M0 專用限制若被永久套用，會錯誤阻擋已正式授權的後續里程碑。
+- **Decision:** 各里程碑依正式授權、前置驗收與必要 Execution Release 執行，並採條件式放行機制。治理工作單經獨立驗收後，STUDENT-MAIN Brain 的正式 PASS 與 Release 可解除已驗證的治理阻擋；不要求另開僅為同步 PASS 或 RELEASED 狀態的遞迴工作單。
+- **Consequences:** 本決議不得削弱 GitHub 驗證、循序開發、資料保護、權限邊界或其他 STOP_IF。
+
+## DEC-016: Web Brain Authority Boundary
+
+- **Date:** 2026-11-24
+- **Status:** ACCEPTED
+- **Authorized By:** STUDENT
+- **Context:** API、網站、Evidence Prompt 與 Browser UAT 需要獨立且清楚的責任邊界。
+- **Decision:** 正式建立 STUDENT-WEB Brain 與 Web Own Worker。Web Brain 負責 API、網站、Evidence Prompt 及 Browser UAT；Research Brain 負責資料研究與資料證據正確性；Engineering Brain 負責系統架構與跨元件整合驗證；STUDENT-MAIN Brain 負責治理與跨 Brain 驗收。所有 Brain 僅管理自己的 Own Worker。
+- **Consequences:** MAIN Brain 不得直接派工給 Web Own Worker；功能標籤 `WEB Worker` 不代表正式權責角色。

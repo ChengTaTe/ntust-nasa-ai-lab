@@ -36,31 +36,52 @@
 - Engineering Own Worker 僅執行 Engineering Brain 明確授權的工程工作。
 - STUDENT-MAIN Brain 不得直接控制 Engineering Own Worker。
 
+### STUDENT-WEB Brain and Web Own Worker
+
+- STUDENT-WEB Brain 負責 FD001 資料查詢 API、本地網站、Engine Unit／Cycle／Sensor 選擇器、資料明細、趨勢視圖、Evidence Prompt Generator、Browser User Acceptance Testing 與網站成果獨立驗收。
+- Web Own Worker 僅執行 STUDENT-WEB Brain 正式授權的工作，並遵守已驗收的 FD001 Data Contract。
+- Web Own Worker 不得自行變更資料契約、直接修改原始資料、擴大工作範圍或宣告 Brain `PASS`。
+- Web Own Worker 必須完成工作單要求的測試、Commit、Push 與證據回報。
+- STUDENT-MAIN Brain 不得直接控制 Web Own Worker。
+
+### Cross-Brain Responsibility Boundaries
+
+- Research Brain：資料研究、資料契約及資料證據正確性。
+- Engineering Brain：系統架構、跨元件整合及工程驗證。
+- STUDENT-WEB Brain：API、網站、Evidence Prompt 及 Browser UAT。
+- STUDENT-MAIN Brain：治理、跨 Brain 協調及里程碑驗收。
+- 所有 Brain 僅能管理自己的 Own Worker；STUDENT-MAIN Brain 不得直接派工給 Research、Engineering 或 Web Own Worker。
+
 ### Logical Worker Labels
 
-`DATA Worker`、`WEB Worker`、`FD001 DATA Worker`、`EVIDENCE Worker`、`QA Worker` 為工作功能的邏輯角色，不代表已部署獨立代理程式，也不改變各 Brain 僅能管理自己的 Own Worker 之邊界。
+`DATA Worker`、`WEB Worker`、`FD001 DATA Worker`、`EVIDENCE Worker`、`QA Worker` 為工作功能的邏輯標籤，不代表已部署獨立代理程式。`WEB Worker` 功能標籤不得與正式的 STUDENT-WEB Brain 或 Web Own Worker 混淆，亦不改變各 Brain 僅能管理自己的 Own Worker 之邊界。
 
 ## C. Authority Boundary
 
 - STUDENT 為最高授權者；各 Brain 僅管理自己的 Own Worker。
+- STUDENT-MAIN Brain 僅能向其他 Brain 交付 Brain-to-Brain 工作，不得越級直接派工給 Research、Engineering 或 Web Own Worker。
 - Worker 不得自行批准 Milestone，亦不得以執行結果取代 Brain 驗收。
 - 未經 STUDENT 授權，不得對外發布資料、修改專案權限或修改其他 Brain 工作區。
 - 每份工作單必須明確定義 `INPUT`、`OUTPUT`、`STOP_IF`、`EVIDENCE` 與 `RETURN_TO`。
 
 ## D. Read-Only and Write Boundary
 
-M0 預設唯讀：
+### Historical M0 Boundary
 
-- `data/`、NASA C-MAPSS FD001 原始資料、`synthetic_sensor.csv` 及其他五筆合成 CSV。
-- 非本工作單授權修改的既有程式碼、設定檔、其他專案、Repository 與 Brain 工作區。
-- 歷史 Commit、遠端 Git 紀錄、使用者憑證、環境變數及私人設定。
+M0 執行期間，`data/`、NASA C-MAPSS FD001 原始資料、`synthetic_sensor.csv`、其他資料、非授權程式與設定、歷史 Git 紀錄及私人設定均為唯讀；WO-M0-001 僅允許寫入四份治理文件、必要 Git 中繼資料及安全的 `.gitignore`。此限制保留為 M0 歷史治理證據，不是對已正式授權之 M1-M5 工作的永久禁止。
 
-WO-M0-001 允許寫入：
+M1 正式資料契約以 DEC-011 與 `ROADMAP.md` 的 M1 Current Acceptance Record 為準；舊有「其他五筆合成 CSV」敘述不得作為現行資料契約。歷史執行證據不得改寫。
 
-- `AGENTS.md`、`ROADMAP.md`、`WORK_ITEM.md`、`DECISIONS.md`。
-- 必要的 Git 初始化中繼資料及必要且安全的 `.gitignore`。
+### General M0-M5 Data Rules
 
-不得讀取或分析原始 CSV，不得修改、刪除、移動、重新產生或上傳原始資料。
+1. 原始資料預設唯讀。
+2. 只有取得 STUDENT 授權、正式工作單及該工作單要求的必要 Execution Release 後，指定 Worker 才能讀取與分析工作單明確指定的原始資料。
+3. 未經授權不得讀取工作單範圍外的資料。
+4. 禁止修改、刪除、移動、覆寫或重新產生原始資料。
+5. 禁止 Commit、Push、上傳或對外發布原始資料。
+6. 衍生資料、摘要、索引規格及原始資料必須明確區隔。
+7. 公開 GitHub 僅保存已授權的程式、測試、契約、索引規格及必要摘要。
+8. 完整逐列索引及完整時間序列預設保留於本地，除非 STUDENT 另以正式工作單核准。
 
 ## E. Mandatory Git Governance
 
@@ -97,10 +118,12 @@ M0 首次建立 `AGENTS.md` 時，可使用 STUDENT 已核准的工作單作為�
 - 需要覆寫既有重要檔案或執行超出授權範圍的操作。
 - GitHub 身分驗證失敗、遠端 Repository 衝突、Push 失敗、無法確認遠端 Commit 或遠端檔案不可讀。
 - 暫存區包含未授權檔案，或可能公開資料、憑證、金鑰或私人資訊。
-- 前項工作尚未取得 Brain `PASS` 與 STUDENT 授權。
-- 工作需要執行 M1-M5 的任何內容。
+- 工作超出目前正式授權的 Milestone、Substage 或 Work Item。
+- 前置里程碑或工作尚未取得必要 `PASS`。
+- 尚未取得 STUDENT 正式授權或工作單要求的 Execution Release。
+- 未經授權提前執行後續工作。
 
-不得繞過 STOP_IF；應回報具體原因與安全的處理建議。
+已正式授權且符合前置閘門的當前工作，不得僅因屬於 M1-M5 而被歷史 M0 規則阻擋。不得繞過 STOP_IF；應回報具體原因與安全的處理建議。
 
 ## H. Evidence Policy
 
@@ -122,3 +145,28 @@ M0 首次建立 `AGENTS.md` 時，可使用 STUDENT 已核准的工作單作為�
 - **PASS:** Brain 已完成 GitHub 遠端驗證及驗收。
 - **REWORK:** 成果可取得，但存在必須修正的問題。
 - **BLOCKED:** 因權限、工具、資料、衝突或驗證失敗，無法安全完成工作。
+
+## J. Bounded Governance Change Procedure
+
+當已驗收治理規則與 STUDENT 新核准的專案範圍發生衝突時：
+
+1. 責任 Brain 必須明確回報衝突及受影響工作。
+2. STUDENT 核准必要的治理修改範圍。
+3. STUDENT-MAIN Brain 建立並正式派送治理工作單。
+4. MAIN Own Worker 僅修改工作單授權的治理文件。
+5. Worker 完成 Commit、Push 與證據回報；STUDENT-MAIN Brain 從 GitHub 獨立驗收。
+6. 驗收通過後，STUDENT-MAIN Brain 正式放行原工作。
+7. 正式放行前不得執行原工作。
+
+此程序不得用於繞過安全規則、資料保護、權限邊界、前置驗收或 GitHub 驗證。
+
+## K. Acceptance and Release Policy
+
+- **AUTHORIZATION:** STUDENT 已核准工作範圍。
+- **EXECUTION_RELEASE:** 工作單要求的必要前置條件已由 STUDENT-MAIN Brain 驗收，允許指定工作進入執行。
+- **WORKER_COMPLETED:** Worker 已完成工作並提交證據，不等於 Brain PASS。
+- **BRAIN_PASS:** 責任 Brain 已從 GitHub 獨立查核並正式驗收。
+
+當工作單具有條件式放行規則時，以 STUDENT-MAIN Brain 正式 Release、已驗收 Commit SHA 與 GitHub `main` 最新治理文件共同作為執行依據。不得要求另建立僅為同步治理工作單 `PASS` 或 `RELEASED` 狀態而產生的遞迴工作單；正式驗收及 Release 決議應於下一張已授權的實質工作提交中留存。
+
+所有工作仍須遵守單一 `main` 分支、循序開發、強制 GitHub 驗證、同一時間僅一項已授權寫入工作，以及禁止未授權擴張範圍。

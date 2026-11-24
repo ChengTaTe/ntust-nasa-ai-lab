@@ -378,3 +378,166 @@ Research Brain 曾因 GitHub 治理狀態尚未同步 M0 結案與 M1 正式授�
 - **SYNC_WORKER_STATUS:** `PENDING_MAIN_BRAIN_REVIEW`
 
 本工作單僅同步既有 M1 驗收決議，不屬於新的研究分析工作。Worker 完成 Commit 與 Push 不等於本同步工作單的 Brain PASS；由 STUDENT-MAIN Brain 完成遠端驗證後正式結案，且不另建立僅為同步本工作單 PASS 的後續工作單。
+
+M1 結案時記錄的 `M2_AUTHORIZATION: NOT_GRANTED` 與 `M2_EXECUTION: NOT_STARTED` 為當時的歷史狀態。下列 Current Project State 是目前有效狀態，不改寫上述歷史證據。
+
+---
+
+## Current Project State
+
+- **M0_GATE:** `PASS`
+- **M0_CLOSURE:** `FINAL`
+- **M1_GATE:** `PASS`
+- **M1_CLOSURE:** `FINAL`
+- **CURRENT_MILESTONE:** `M2`
+- **CURRENT_SUBSTAGE:** `M2-G`
+- **M2_GATE:** `NOT_COMPLETED`
+- **M2_A_AUTHORIZATION:** `APPROVED`
+- **M2_A_EXECUTION_RELEASE:** `PENDING_MAIN_GOVERNANCE_ACCEPTANCE`
+- **M2_A_EXECUTION:** `NOT_STARTED`
+- **M2_B_AUTHORIZATION:** `NOT_GRANTED`
+- **M2_B_EXECUTION:** `NOT_STARTED`
+- **M3_AUTHORIZATION:** `NOT_GRANTED`
+- **M4_AUTHORIZATION:** `NOT_GRANTED`
+- **M5_AUTHORIZATION:** `NOT_GRANTED`
+
+---
+
+## WO-M2-001-GOV-ALIGN
+
+- **WORK_ITEM_ID:** `WO-M2-001-GOV-ALIGN`
+- **REVISION:** `1`
+- **TYPE:** `BOUNDED_GOVERNANCE_ALIGNMENT`
+- **MILESTONE:** `M2`
+- **SUBSTAGE:** `M2-G`
+- **OWNER:** STUDENT-MAIN Brain
+- **EXECUTOR:** MAIN Own Worker (Codex)
+- **AUTHORIZED_BY:** STUDENT
+- **AUTHORIZATION_STATUS:** `APPROVED`
+- **DISPATCH_STATUS:** `COMMAND_DISPATCHED`
+- **EXECUTION_RELEASE:** `GRANTED`
+- **CURRENT_STATUS:** `PENDING_BRAIN_REVIEW`
+- **RETURN_TO:** STUDENT-MAIN Brain
+
+### INPUT
+
+- GitHub `main` 最新 `AGENTS.md`、`ROADMAP.md`、`WORK_ITEM.md`、`DECISIONS.md`。
+- STUDENT 核准的 M2 Data First 方案、WO-M2-001 Brain-to-Brain Work Order、Research Brain Governance Preflight Return 與 STUDENT-MAIN Brain Governance Decision。
+- M1 accepted research Commit `0ba0a16c1e6904a389fef87b66389662cf0737b3` 及 closure Commit `240d7900ec74f278f667e1d8567ab8599139f424`。
+
+### OBJECTIVE
+
+一次完成 M2 治理規則對齊，處理 Roadmap 順序、歷史 M0 STOP_IF、M2 授權、Data First 決策及 Execution Release 五項治理阻擋；不得執行 FD001 分析、網站/API 開發或 RUL 預測。
+
+### OUTPUT
+
+- 更新且一致的 `AGENTS.md`、`ROADMAP.md`、`WORK_ITEM.md`、`DECISIONS.md`。
+- GitHub `main` Commit、遠端驗證與完整 Worker 證據。
+
+### AUTHORIZED_SCOPE
+
+僅允許修改 `AGENTS.md`、`ROADMAP.md`、`WORK_ITEM.md`、`DECISIONS.md`。禁止修改原始資料、M1 已驗收成果、程式碼、測試、網站或其他 Repository／Brain 工作區。
+
+### STOP_IF
+
+- GitHub 治理文件不可讀、遠端 SHA 不符、工作樹有未授權變更或存在其他寫入工作。
+- 需要修改四份授權文件以外的檔案，或需要讀取／分析 FD001 原始資料。
+- 需要重新執行 M1、派送 Research Worker、開發網站/API 或執行 M2-A/M2-B。
+- Commit、Push、遠端驗證、權限或敏感資料檢查失敗。
+
+### EVIDENCE
+
+- 實際命令、Exit Code、initial/final remote SHA、Commit/parent/object format/URL、changed/staged files。
+- 四份治理文件及兩份 M1 已驗收成果 SHA-256、本地／遠端一致性、跨文件驗證、敏感資訊掃描及最終工作樹狀態。
+
+### ACCEPTANCE_CRITERIA
+
+- 四份治理文件一致，五項治理阻擋均有處理機制，Data First 與 Web Brain 邊界正式登錄。
+- M0/M1 歷史成果維持不變；M2-A 僅為已授權但待 Release，M2-B 未授權。
+- 僅修改四份授權治理文件，原始資料未讀取、修改或上傳；Commit、Push 與遠端驗證成功。
+
+### RETURN_TO
+
+提交 STUDENT-MAIN Brain 進行 GitHub 獨立驗收。Worker 不得自行宣告 MAIN Brain PASS 或放行 WO-M2-001。
+
+---
+
+## WO-M2-001
+
+- **WORK_ITEM_ID:** `WO-M2-001`
+- **REVISION:** `1`
+- **TYPE:** `FD001_LOCAL_DATA_VALIDATION_AND_CONTRACT`
+- **MILESTONE:** `M2`
+- **SUBSTAGE:** `M2-A`
+- **OWNER:** STUDENT-MAIN Brain
+- **TARGET:** STUDENT-RESEARCH Brain
+- **AUTHORIZED_BY:** STUDENT
+- **AUTHORIZATION_STATUS:** `APPROVED`
+- **RESEARCH_BRAIN_ACK:** `ACK`
+- **BRAIN_TO_BRAIN_DELIVERY:** `ACKNOWLEDGED`
+- **RESEARCH_WORKER_WORK_ITEM_ID:** `WO-M2-001-RW-001`
+- **RESEARCH_WORKER_WORK_ORDER_STATUS:** `PLANNED_NOT_ISSUED`
+- **RESEARCH_WORKER_DISPATCH_STATUS:** `CREATED_NOT_DISPATCHED`
+- **WORKER_EXECUTION_STATUS:** `NOT_STARTED`
+- **PREVIOUS_GOVERNANCE_PREFLIGHT:** `BLOCKED`
+- **CURRENT_GOVERNANCE_PREFLIGHT:** `PENDING_RECHECK_AFTER_ALIGNMENT`
+- **EXECUTION_RELEASE:** `PENDING_MAIN_GOVERNANCE_ACCEPTANCE`
+- **SOURCE_TRUST_POLICY:** `STUDENT_TRUSTED_LOCAL_FILES`
+- **EXTERNAL_SOURCE_VERIFICATION:** `NOT_REQUIRED`
+- **INTERNET_DATA_DOWNLOAD:** `PROHIBITED`
+- **EXTERNAL_DATA_REPLACEMENT:** `PROHIBITED`
+- **RAW_DATA_ACCESS:** `AUTHORIZED_READ_ONLY_AFTER_RELEASE`
+- **RAW_DATA_UPLOAD:** `PROHIBITED`
+- **DATA_CONTRACT_VERSION:** `1.0.0`
+- **RETURN_TO:** STUDENT-MAIN Brain
+
+### Authorized Research Output Scope
+
+- `tools/profile_fd001.py`
+- `tools/validate_fd001.py`
+- `tests/test_fd001.py`
+- `outputs/FD001_DATASET_PROFILE.md`
+- `outputs/FD001_RAW_INDEX_SPEC.md`
+- `outputs/FD001_DATA_QUALITY.md`
+- `outputs/FD001_SENSOR_TRENDS.md`
+- `contracts/FD001_DATA_CONTRACT.md`
+- `contracts/FD001_DATA_CONTRACT.json`
+
+以上為後續 Research 工作的授權上限，不屬於 WO-M2-001-GOV-ALIGN 的寫入範圍。
+
+### Data Validation and Contract Requirements
+
+- 驗證本地 `train_FD001.txt`、`test_FD001.txt`、`RUL_FD001.txt` 的檔案身分、SHA-256、結構、實際行列數及完整性。
+- 驗證 Train／Test／RUL 語意、Unit／Cycle 索引、Test Unit 與 RUL 對應及限制。
+- 建立 Raw Data Index Specification、Operational Settings 欄位字典、Sensor 1-21 欄位字典、Dataset Profile、Data Quality Report 與可追溯 Sensor Trend Analysis。
+- 建立 FD001 Data Contract v1.0.0、可重現程式及測試證據。
+
+### ACCEPTANCE_CRITERIA
+
+- 三份資料結構與完整性通過，索引與 RUL 對應可重現、可查核。
+- 資料品質、趨勢分析及 Data Contract 完整一致；原始資料未修改或上傳。
+- Research Brain 完成獨立審查，STUDENT-MAIN Brain 完成 Domain Acceptance。
+
+### STOP_IF
+
+- M2-G 未取得 STUDENT-MAIN Brain PASS，或未收到包含 accepted governance Commit SHA 的正式 M2-A Execution Release。
+- Research Brain 尚未重新讀取該版本與最新 `main` 四份治理文件，或尚未自行建立並派送 `WO-M2-001-RW-001`。
+- 資料身分、結構、完整性或範圍不明；需要修改、替換、重新下載或上網核對來源。
+- 原始資料可能被上傳，或 GitHub 驗證失敗。
+
+### EVIDENCE
+
+- 本地檔案存在性與 SHA-256、行列數／欄位／Unit／Cycle／RUL 對應驗證。
+- 資料品質、Sensor 趨勢、Raw Data Index、Data Contract、可重現命令、測試 Exit Code、Commit 與 GitHub 遠端驗證。
+
+### Conditional Execution Release
+
+WO-M2-001 的執行放行必須同時滿足：
+
+1. WO-M2-001-GOV-ALIGN 已完成 Commit 與 Push。
+2. STUDENT-MAIN Brain 已從 GitHub 獨立驗收並正式裁決治理工作單 PASS。
+3. STUDENT-MAIN Brain 已提供包含完整 Accepted Governance Commit SHA 的正式 M2-A Execution Release。
+4. Research Brain 已重新讀取該版本與最新 `main` 四份治理文件，確認版本、授權與範圍一致。
+5. Research Brain 已自行建立並派送 `WO-M2-001-RW-001` 正式工作單。
+
+全部條件滿足後，Research Own Worker 才可開始。当前 `PENDING` 為等待 STUDENT-MAIN Brain 驗收的提交狀態；正式 PASS 與 Release 發出後，不需要額外治理同步工作單或 Commit，驗收與 Release 結果由後續已授權實質工作提交留存。若遠端版本、授權或範圍衝突，仍須停止並回報 `BLOCKED`。
