@@ -1,31 +1,37 @@
 # FD001 M4 Browser UAT
 
-## Environment and method
+## Revision 2 environment and method
 
-- Work item: `WO-M4-001-WW-001`, Revision 1.
-- Python: 3.15.2.
-- Browser: Microsoft Edge Chromium 158.0.4370.33, headless.
-- Playwright: 1.55.0.
-- Server: real loopback `ThreadingHTTPServer` created by `web.server`; production startup command independently verified at `http://127.0.0.1:8000/`.
-- Method: Playwright browser interaction, real loopback HTTP/API, browser Clipboard API, controlled response ordering, and local TXT parsing for the required comparison cases.
-- Screenshot evidence: three local PNG files were produced in the private temporary evidence directory; screenshots are not committed.
+- Work item: `WO-M4-001-WW-001`, Revision 2; related review `WO-M4-002`.
+- Baseline: `2028f8fbfcab14c0b3be2dfbf6f07971ed257a2e`.
+- Python 3.15.2; Microsoft Edge Chromium 158.0.4370.33 headless; Playwright 1.55.0.
+- Real loopback `ThreadingHTTPServer`, production website/API, browser Clipboard API, controlled response ordering, and direct local TXT/RUL parsing.
+- Three screenshots are retained only in the private temporary evidence directory.
+
+Revision 2 adds independent assertions for every selected-range statistic, full-Unit versus selected-range scope, exact DOM and prompt name/value maps, raw locator fields, operational settings, dataset identity/trust policy, and direct Test RUL row alignment. Assertions no longer accept locator or prompt substring presence as evidence.
 
 ## Results
 
-| Test ID | Steps and expected result | Actual result | Evidence | Result |
-|---|---|---|---|---|
-| UAT-M4-01 | Open the real site and query status; expect HTTP 200 and verified data. | Title loaded; status API returned `data_available=true`. | `test_uat_m4_01_real_site_and_http_api_start`, overview screenshot | PASS |
-| UAT-M4-02 | Switch Train/Test and compare Unit 1 namespaces. | Split changed; Train/Test source SHA values differed and Test selection rendered. | `test_uat_m4_02_train_test_namespace_separation` | PASS |
-| UAT-M4-03 | Change Engine Unit to 100; expect all Cycle selectors rebuilt from actual Cycles. | Start, End and Selected option lists exactly matched the independent Unit 100 TXT Cycle list. | `test_uat_m4_03_engine_unit_rebuilds_valid_cycles` | PASS |
-| UAT-M4-04 | Select range 90-100 and Selected Cycle 96, then shrink End to 95. | 11 actual options/samples rendered; Selected Cycle deterministically corrected to 95. | `test_uat_m4_04_range_sample_count_and_selected_boundary` | PASS |
-| UAT-M4-05 | Change Sensor inside a fixed range. | SVG path and title updated to the current Sensor. | `test_uat_m4_05_sensor_switch_updates_range_trend` | PASS |
-| UAT-M4-06 | CASE A: compare browser, loopback API, independent TXT, locator, SVG and prompt. | All 21 points, selected observation and source locator matched. | `test_uat_m4_06_case_a_api_raw_dom_svg_prompt`, CASE A screenshot | PASS |
-| UAT-M4-07 | CASE B and a one-Cycle constant series. | All 11 CASE B points matched; single-point SVG contained finite path/dot coordinates. | `test_uat_m4_07_case_b_constant_and_single_point_svg`, CASE B screenshot | PASS |
-| UAT-M4-08 | Generate, preview, copy, read clipboard and compare. | Clipboard read-back equaled the entire preview after CRLF/LF normalization. | `test_uat_m4_08_prompt_preview_and_actual_copy` | PASS |
-| UAT-M4-09 | Generate prompt, change Sensor, then regenerate. | Preview cleared immediately, Copy disabled, and regenerated prompt contained the current Sensor. | `test_uat_m4_09_prompt_invalidates_on_selection_change` | PASS |
-| UAT-M4-10 | Exercise inconsistent range correction, empty result, unavailable API and integrity failure. | Range corrected deterministically; each error received a distinct UI category; prompt generation remained disabled on failure. | `test_uat_m4_10_invalid_empty_unavailable_and_integrity_errors` | PASS |
-| UAT-M4-11 | Compare Test RUL semantics and Train absence. | Test prompt stated final-observed-Cycle basis; Train hid RUL and stated `NOT_APPLICABLE`. | `test_uat_m4_11_test_rul_basis_and_train_absence` | PASS |
-| UAT-M4-12 | Release delayed stale success/error after a newer Sensor/Cycle succeeds. | Current Cycle 3/Sensor 03 DOM and prompt remained intact; stale error did not display. | `test_uat_m4_12_controlled_stale_success_and_error_isolation` | PASS |
-| UAT-M4-13 | Operate accepted row, locator, statistics and chart features while monitoring console. | No critical console errors; 26 fields, relative locator and full-Unit statistics remained visible. | `test_uat_m4_13_console_clean_and_existing_evidence_visible` | PASS |
+| Test ID | Acceptance focus | Revision 2 actual result | Result |
+|---|---|---|---|
+| UAT-M4-01 | Real site and status API | HTTP 200; verified data loaded | PASS |
+| UAT-M4-02 | Train/Test namespace separation | Independent source hashes and selections remained distinct | PASS |
+| UAT-M4-03 | Unit change rebuilds Cycles | Options exactly matched direct TXT Unit Cycles | PASS |
+| UAT-M4-04 | Range boundaries and correction | 11 samples; selected Cycle corrected deterministically | PASS |
+| UAT-M4-05 | Sensor change | Current SVG path and title updated | PASS |
+| UAT-M4-06 | CASE A exact evidence | All raw/API/DOM/SVG/prompt/statistics/locator/RUL fields matched | PASS |
+| UAT-M4-07 | CASE B and CASE C | Constant range and one-point statistics matched; finite SVG | PASS |
+| UAT-M4-08 | Preview and actual Clipboard | Full read-back equal after platform newline normalization | PASS |
+| UAT-M4-09 | Prompt invalidation | Preview cleared and Copy disabled until regeneration | PASS |
+| UAT-M4-10 | Invalid/empty/unavailable/integrity errors | Distinct fail-closed UI states; prompt disabled | PASS |
+| UAT-M4-11 | RUL semantics | Test final-observed-Cycle basis; Train not applicable | PASS |
+| UAT-M4-12 | Stale response isolation | Delayed success/error could not overwrite current state | PASS |
+| UAT-M4-13 | Console and retained evidence | No critical console error; evidence views remained visible | PASS |
 
-Result: **13 passed, 0 failed, 0 skipped**. The tests control delayed response release and do not depend on ordinary network timing. Clipboard acceptance verifies the copied text, not only button presence.
+Targeted Revision 2 browser result: **13 passed, 0 failed, 0 skipped**, Exit Code 0. The final eight-suite regression result is recorded in `FD001_M4_REPORT.md`.
+
+## Review-gap disposition
+
+- `M4-R-001`: closed by direct raw-TXT calculation and named DOM/prompt comparison for start, end, change, minimum, maximum, arithmetic mean, sample count and Cycle bounds across Cases A-C. Full-Unit scope is separately checked.
+- `M4-R-002`: closed by exact section parsing and exact field maps for dataset identity, trust policy, selection, observation, operational settings, source locator, derived statistics and Test/Train RUL semantics.
+- Production defect: none observed. No production, API, Contract or dependency file was changed.

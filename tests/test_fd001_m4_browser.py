@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import json
+import math
 import re
 import tempfile
 import threading
@@ -17,6 +20,9 @@ EDGE = Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
 SCREENSHOTS = Path(tempfile.gettempdir()) / "NTUST_FD001_M4_EVIDENCE"
 SVG_WIDTH, SVG_HEIGHT = 900.0, 350.0
 PAD = {"left": 68.0, "right": 28.0, "top": 24.0, "bottom": 48.0}
+CONTRACT = json.loads((ROOT / "contracts" / "FD001_DATA_CONTRACT.json").read_text(encoding="utf-8"))
+CONTRACT_IDENTITY = {item["dataset_split"]: item for item in CONTRACT["dataset_identity"]}
+PROMPT_SECTIONS = {"OBSERVED_DATA", "DERIVED_STATISTICS", "ANALYSIS_QUESTIONS", "LIMITATIONS"}
 
 
 def raw_rows(split: str) -> list[dict[str, object]]:
@@ -40,6 +46,24 @@ def raw_rows(split: str) -> list[dict[str, object]]:
     return rows
 
 
+def raw_rul_rows() -> list[dict[str, object]]:
+    """Independent RUL oracle preserving raw and effective-row indices."""
+    rows: list[dict[str, object]] = []
+    effective_index = 0
+    for line_number, line in enumerate((DATA / "RUL_FD001.txt").read_text(encoding="ascii").splitlines(), start=1):
+        tokens = line.split()
+        if not tokens:
+            continue
+        rows.append({
+            "line": line_number,
+            "effective_index": effective_index,
+            "raw_token": tokens[0],
+            "value": int(float(tokens[0])),
+        })
+        effective_index += 1
+    return rows
+
+
 class FD001M4BrowserUAT(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -47,6 +71,7 @@ class FD001M4BrowserUAT(unittest.TestCase):
             raise RuntimeError("Microsoft Edge browser executable is unavailable.")
         SCREENSHOTS.mkdir(parents=True, exist_ok=True)
         cls.raw = {split: raw_rows(split) for split in ("train", "test")}
+        cls.raw_rul = raw_rul_rows()
         cls.server = create_server(port=0, project_root=ROOT)
         cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
@@ -106,6 +131,55 @@ class FD001M4BrowserUAT(unittest.TestCase):
         self.page.locator("#prompt-preview[data-valid='true']").wait_for()
         return self.page.locator("#prompt-preview").input_value()
 
+    def definition_list(self, selector: str) -> dict[str, str]:
+        keys = self.page.locator(f"{selector} dt").all_text_contents()
+        values = self.page.locator(f"{selector} dd").all_text_contents()
+        self.assertEqual(len(keys), len(values))
+        self.assertEqual(len(keys), len(set(keys)), f"Duplicate DOM field names in {selector}")
+        return dict(zip(keys, values))
+
+    def statistic_fields(self, selector: str) -> dict[str, str]:
+        fields: dict[str, str] = {}
+        for item in self.page.locator(f"{selector} .stat").all():
+            name = item.locator("span").inner_text()
+            self.assertNotIn(name, fields, f"Duplicate statistic field: {name}")
+            fields[name] = item.locator("strong").inner_text()
+        return fields
+
+    @staticmethod
+    def prompt_sections(prompt: str) -> dict[str, list[str]]:
+        sections = {name: [] for name in PROMPT_SECTIONS}
+        active: str | None = None
+        for line in prompt.replace("\r\n", "\n").splitlines():
+            if line in PROMPT_SECTIONS:
+                active = line
+            elif active and line:
+                sections[active].append(line)
+        return sections
+
+    def prompt_line(self, sections: dict[str, list[str]], section: str, prefix: str) -> str:
+        matches = [line for line in sections[section] if line.startswith(prefix)]
+        self.assertEqual(len(matches), 1, f"Expected exactly one {prefix!r} field in {section}")
+        return matches[0][len(prefix):]
+
+    @staticmethod
+    def key_values(text: str, separator: str = "; ") -> dict[str, str]:
+        fields: dict[str, str] = {}
+        for item in text.split(separator):
+            key, value = item.split("=", 1)
+            if key in fields:
+                raise AssertionError(f"Duplicate prompt field: {key}")
+            fields[key] = value
+        return fields
+
+    def assert_derived_display(self, actual: str, expected: float, label: str) -> None:
+        """Production fmt uses eight significant digits for non-integers."""
+        if expected == 0:
+            tolerance = 5.1e-9
+        else:
+            tolerance = 0.51 * 10 ** (math.floor(math.log10(abs(expected))) - 7)
+        self.assertAlmostEqual(float(actual), expected, delta=tolerance, msg=f"{label}; tolerance={tolerance}")
+
     @staticmethod
     def expected_coordinates(rows: list[dict[str, object]], column: int) -> list[tuple[float, float]]:
         xs = [row["cycle"] for row in rows]
@@ -126,10 +200,29 @@ class FD001M4BrowserUAT(unittest.TestCase):
             for x, y in zip(xs, ys)
         ]
 
-    def assert_case(self, split: str, unit: int, sensor: str, column: int, start: int, end: int, cycle: int, screenshot: str) -> None:
+    def assert_case(self, split: str, unit: int, sensor: str, column: int, start: int, end: int, cycle: int, screenshot: str | None) -> None:
         self.select_range(split, unit, start, end, cycle, sensor)
-        raw_range = [row for row in self.unit_rows(split, unit) if start <= row["cycle"] <= end]
+        full_unit_rows = self.unit_rows(split, unit)
+        raw_range = [row for row in full_unit_rows if start <= row["cycle"] <= end]
         selected = next(row for row in raw_range if row["cycle"] == cycle)
+        raw_values = [row["values"][column] for row in raw_range]
+        expected_range = {
+            "sample_count": len(raw_range),
+            "cycle_start": raw_range[0]["cycle"],
+            "cycle_end": raw_range[-1]["cycle"],
+            "start_value": raw_values[0],
+            "end_value": raw_values[-1],
+            "change": raw_values[-1] - raw_values[0],
+            "minimum": min(raw_values),
+            "maximum": max(raw_values),
+            "mean": sum(raw_values) / len(raw_values),
+        }
+        source_path = DATA / f"{split}_FD001.txt"
+        source_sha = hashlib.sha256(source_path.read_bytes()).hexdigest()
+        identity = CONTRACT_IDENTITY[split]
+        self.assertEqual(source_sha, identity["source_sha256"])
+
+        # Retained raw-to-API point/order/token comparisons.
         api_series = self.page.request.get(self.base + f"/api/v1/sensor-series?split={split}&unit_id={unit}&sensor_id={sensor}").json()["data"]
         api_points = [point for point in api_series["points"] if start <= point["cycle"] <= end]
         self.assertEqual(len(api_points), len(raw_range))
@@ -138,9 +231,42 @@ class FD001M4BrowserUAT(unittest.TestCase):
             self.assertEqual(point["value"], raw["values"][column])
             self.assertEqual(point["raw_value"], raw["tokens"][column])
         self.assertEqual(float(self.page.locator("#selected-value").inner_text()), selected["values"][column])
-        locator = self.page.locator("#locator-detail").inner_text()
-        for expected in (str(selected["line"]), str(selected["index"]), str(column + 1), selected["tokens"][column]):
-            self.assertIn(expected, locator)
+
+        # Exact DOM locator name/value mapping; no substring evidence.
+        locator = self.definition_list("#locator-detail")
+        expected_locator = {
+            "dataset_id": identity["dataset_id"],
+            "dataset_split": split,
+            "source_file": identity["source_file"],
+            "source_sha256": source_sha,
+            "raw_line_number": str(selected["line"]),
+            "parsed_row_index": str(selected["index"]),
+            "unit_id": str(unit),
+            "cycle": str(cycle),
+            "raw_column_index": str(column + 1),
+            "canonical_field_name": sensor,
+            "raw_value": selected["tokens"][column],
+            "parsed_value": str(selected["values"][column]),
+        }
+        self.assertEqual(locator, expected_locator)
+
+        # Independently calculated range statistics versus named DOM fields.
+        dom_range = self.statistic_fields("#range-stats")
+        self.assertEqual(set(dom_range), {"Start", "End", "Change", "Minimum", "Maximum", "Mean", "Samples", "Actual range"})
+        self.assertEqual(int(dom_range["Samples"]), expected_range["sample_count"])
+        self.assertEqual(dom_range["Actual range"], f"{expected_range['cycle_start']}–{expected_range['cycle_end']}")
+        for dom_name, expected_name in (("Start", "start_value"), ("End", "end_value"), ("Change", "change"), ("Minimum", "minimum"), ("Maximum", "maximum"), ("Mean", "mean")):
+            self.assert_derived_display(dom_range[dom_name], expected_range[expected_name], f"DOM {dom_name}")
+
+        # Full-unit/range scope separation from independent complete Unit rows.
+        dom_full = self.statistic_fields("#trend-stats")
+        self.assertEqual(int(dom_full["Samples"]), len(full_unit_rows))
+        self.assertEqual(dom_full["Cycle range"], f"{full_unit_rows[0]['cycle']}–{full_unit_rows[-1]['cycle']}")
+        self.assertNotEqual((len(full_unit_rows), full_unit_rows[-1]["cycle"]), (len(raw_range), raw_range[-1]["cycle"]))
+        if len(set(row["values"][column] for row in full_unit_rows)) == 1:
+            self.assertEqual(dom_full["Pearson r"], "UNDEFINED")
+
+        # Retained independent SVG path and selected-dot comparisons.
         actual_path = [
             (float(x), float(y))
             for _, x, y in re.findall(r"([ML])(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)", self.page.locator("#trend-chart .chart-line").get_attribute("d") or "")
@@ -154,15 +280,68 @@ class FD001M4BrowserUAT(unittest.TestCase):
         dot = self.page.locator("#trend-chart .chart-dot")
         self.assertAlmostEqual(float(dot.get_attribute("cx")), expected_path[selected_index][0], delta=1e-9)
         self.assertAlmostEqual(float(dot.get_attribute("cy")), expected_path[selected_index][1], delta=1e-9)
+
+        # Parse the prompt into exact sections and named fields.
         prompt = self.prompt()
-        for expected in (
-            f"split={split}", f"unit={unit}", f"start_cycle={start}", f"end_cycle={end}",
-            f"selected_cycle={cycle}", f"sensor={sensor}", f"sample_count={len(raw_range)}",
-            f"raw_line_number={selected['line']}", f"parsed_row_index={selected['index']}",
-            f"raw_column_index={column + 1}", f"raw_token={selected['tokens'][column]}",
-        ):
-            self.assertIn(expected, prompt)
-        self.page.screenshot(path=str(SCREENSHOTS / screenshot), full_page=True)
+        sections = self.prompt_sections(prompt)
+        observed = sections["OBSERVED_DATA"]
+        derived = sections["DERIVED_STATISTICS"]
+        self.assertEqual(self.prompt_line(sections, "OBSERVED_DATA", "dataset_identity: "), identity["dataset_id"])
+        source_policy = self.prompt_line(sections, "OBSERVED_DATA", "source_policy: ").split("; ")
+        self.assertEqual(source_policy, [identity["source_trust_policy"], f"external_source_verification={identity['external_source_verification']}"])
+        selection = self.key_values(self.prompt_line(sections, "OBSERVED_DATA", "selection: "), ", ")
+        self.assertEqual(selection, {"split": split, "unit": str(unit), "start_cycle": str(start), "end_cycle": str(end), "selected_cycle": str(cycle), "sensor": sensor})
+        observation = self.key_values(self.prompt_line(sections, "OBSERVED_DATA", "selected_observation: "))
+        self.assertEqual(observation["raw_token"], selected["tokens"][column])
+        self.assertEqual(float(observation["parsed_value"]), selected["values"][column])
+        operations = self.key_values(self.prompt_line(sections, "OBSERVED_DATA", "operational_settings: "), ", ")
+        for index in range(1, 4):
+            self.assertEqual(float(operations[f"op_setting_{index}"]), selected["values"][index + 1])
+        prompt_locator = self.key_values(self.prompt_line(sections, "OBSERVED_DATA", "raw_source_locator: "))
+        self.assertEqual(prompt_locator, {
+            "source_file": identity["source_file"],
+            "source_sha256": source_sha,
+            "raw_line_number": str(selected["line"]),
+            "parsed_row_index": str(selected["index"]),
+            "raw_column_index": str(column + 1),
+            "canonical_field": sensor,
+            "raw_token": selected["tokens"][column],
+            "parsed_value": str(selected["values"][column]),
+        })
+
+        displayed = self.key_values(self.prompt_line(sections, "DERIVED_STATISTICS", "displayed_range: "))
+        self.assertEqual(displayed, {"actual_cycle_start": str(start), "actual_cycle_end": str(end), "sample_count": str(len(raw_range))})
+        prompt_full = self.key_values(self.prompt_line(sections, "DERIVED_STATISTICS", "FULL_UNIT_STATISTICS: "))
+        self.assertEqual(prompt_full["cycle_range"], f"{full_unit_rows[0]['cycle']}-{full_unit_rows[-1]['cycle']}")
+        self.assertEqual(int(prompt_full["sample_count"]), len(full_unit_rows))
+        if len(set(row["values"][column] for row in full_unit_rows)) == 1:
+            self.assertEqual(prompt_full["pearson_r"], "UNDEFINED")
+        prompt_range = self.key_values(self.prompt_line(sections, "DERIVED_STATISTICS", "SELECTED_RANGE_STATISTICS: "))
+        self.assertEqual(prompt_range["cycle_range"], f"{start}-{end}")
+        self.assertEqual(int(prompt_range["sample_count"]), len(raw_range))
+        for prompt_name, expected_name in (("start_value", "start_value"), ("end_value", "end_value"), ("change", "change"), ("minimum", "minimum"), ("maximum", "maximum"), ("arithmetic_mean", "mean")):
+            self.assert_derived_display(prompt_range[prompt_name], expected_range[expected_name], f"Prompt {prompt_name}")
+
+        if split == "test":
+            rul = self.raw_rul[unit - 1]
+            self.assertEqual(rul["line"], unit)
+            self.assertEqual(rul["effective_index"], unit - 1)
+            self.assertEqual(rul["raw_token"], str(rul["value"]))
+            self.assertEqual(int(self.prompt_line(sections, "OBSERVED_DATA", "test_rul_cycles: ")), rul["value"])
+            self.assertEqual(self.page.locator("#rul-value").inner_text(), f"{rul['value']} cycles")
+            basis = self.prompt_line(sections, "OBSERVED_DATA", "test_rul_observation_basis: ")
+            match = re.fullmatch(r"Test Unit (\d+) final observed cycle (\d+); not arbitrary Selected Cycle (\d+)", basis)
+            self.assertIsNotNone(match)
+            self.assertEqual(tuple(map(int, match.groups())), (unit, full_unit_rows[-1]["cycle"], cycle))
+            self.assertNotEqual(full_unit_rows[-1]["cycle"], cycle)
+            self.assertNotEqual(full_unit_rows[-1]["cycle"], end)
+        else:
+            self.assertFalse(self.page.locator("#rul-panel").is_visible())
+            self.assertEqual(self.prompt_line(sections, "OBSERVED_DATA", "train_rul: "), "NOT_APPLICABLE (RUL_FD001.txt supplies Test Units only)")
+            self.assertFalse(any(line.startswith("test_rul_cycles:") for line in observed))
+
+        if screenshot:
+            self.page.screenshot(path=str(SCREENSHOTS / screenshot), full_page=True)
 
     def test_uat_m4_01_real_site_and_http_api_start(self) -> None:
         response = self.page.request.get(self.base + "/api/v1/status")
@@ -209,7 +388,7 @@ class FD001M4BrowserUAT(unittest.TestCase):
 
     def test_uat_m4_07_case_b_constant_and_single_point_svg(self) -> None:
         self.assert_case("train", 1, "sensor_01", 5, 90, 100, 96, "case_b.png")
-        self.select_range("train", 1, 96, 96, 96, "sensor_01")
+        self.assert_case("train", 1, "sensor_01", 5, 96, 96, 96, None)
         path = self.page.locator("#trend-chart .chart-line").get_attribute("d") or ""
         self.assertNotRegex(path, r"NaN|Infinity")
         self.assertEqual(len(re.findall(r"[ML]", path)), 1)

@@ -1,38 +1,38 @@
 # FD001 M4 Evidence Comparison
 
-## Independent Oracle method
+## Revision 2 independent Oracle
 
-The comparison test reads the authorized local ASCII TXT source directly, splits each non-empty line on whitespace, converts tokens independently, and filters by Unit and Cycle range in original file order. It does not use Catalog, API, DOM or SVG output to construct expected values. Only the finite required ranges are summarized here; the full series and raw files are not published.
+Work item `WO-M4-001-WW-001` Revision 2 closes review findings `M4-R-001` and `M4-R-002`. The browser test reads the authorized ASCII TXT sources and `RUL_FD001.txt` directly, preserves physical line, effective row and raw token, and calculates expected values without using Catalog, API, DOM, SVG or prompt output. Only the required finite cases are summarized; no complete series or raw source is published.
 
-SVG expectation uses the displayed range only. For viewBox 900 by 350 and padding left 68, right 28, top 24, bottom 48:
+Derived numeric displays use the production eight-significant-digit format. Comparisons use a half-last-place tolerance: `5.1e-9` for zero and `0.51 * 10^(floor(log10(abs(expected))) - 7)` otherwise. Counts, Cycle bounds, locators, source hashes, raw tokens and RUL rows require exact equality.
 
-- `x = 68 + (cycle - min_cycle) / max(1, max_cycle - min_cycle) * 804`
-- `y = 24 + (max_value - value) / (max_value - min_value) * 278`
-- Constant values receive the UI's documented margin `max(abs(value) * 0.01, 1)`.
-- Path coordinates are serialized to two decimals and compared with 0.0051 pixel tolerance; the selected dot uses the unrounded coordinate and 1e-9 tolerance.
+## Exact comparison matrix
 
-## CASE A
+| Case | Field | Independent Expected | DOM Actual | Prompt Actual | Comparison Method | Result |
+|---|---|---|---|---|---|---|
+| A | Selection | Test / Unit 100 / Cycle 100 / sensor_02 / range 90-110 | Exact selected controls | Exact named selection fields | Exact field map | PASS |
+| A | Selected observation | line 12998; row 12997; column 7; token/value 642.62 | Exact 12-field locator map | Exact 8-field locator map and observation | Exact names and values | PASS |
+| A | Operational settings | 0.0018, -0.0, 100.0 | Selected record rendered | Exact three named fields | Numeric equality | PASS |
+| A | Range scope | 21 samples; Cycles 90-110 | 21; 90-110 | 21; 90-110 | Exact integers | PASS |
+| A | Range statistics | start 642.33; end 642.25; change -0.08000000000004093; min 641.86; max 642.83; mean 642.3266666666667 | 642.33; 642.25; -0.08; 641.86; 642.83; 642.32667 | Same displayed values | Defined display tolerance | PASS |
+| A | Full Unit scope | 198 samples; Cycles 1-198 | 198; 1-198 | 198; 1-198 | Exact and distinct from range | PASS |
+| A | Test RUL | Unit 100 = raw line 100 / effective row 99 / token 20; basis final observed Cycle 198 | 20 cycles | 20; final Cycle 198, not selected Cycle 100 | Direct RUL TXT row plus exact basis parse | PASS |
+| B | Selection | Train / Unit 1 / Cycle 96 / sensor_01 / range 90-100 | Exact selected controls | Exact named selection fields | Exact field map | PASS |
+| B | Selected observation | line 96; row 95; column 6; token/value 518.67 | Exact 12-field locator map | Exact 8-field locator map and observation | Exact names and values | PASS |
+| B | Operational settings | -0.0034, 0.0001, 100.0 | Selected record rendered | Exact three named fields | Numeric equality | PASS |
+| B | Range statistics | 11 samples; Cycles 90-100; start/end/min/max/mean 518.67; change 0 | Exact named statistics | Exact named statistics | Exact integers plus defined display tolerance | PASS |
+| B | Full Unit scope | 192 samples; Cycles 1-192; constant sensor Pearson undefined | 192; 1-192; `UNDEFINED` | 192; 1-192; `UNDEFINED` | Exact scope and sentinel | PASS |
+| B | Train RUL | unavailable | Panel hidden | `NOT_APPLICABLE`; no Test RUL field | Exact absence/sentinel | PASS |
+| C | Selection/scope | Train / Unit 1 / Cycle 96 / sensor_01 / range 96-96 | Exact selected controls | Exact named selection fields | Exact field map | PASS |
+| C | Range statistics | 1 sample; Cycle 96; start/end/min/max/mean 518.67; change 0 | Exact named statistics | Exact named statistics | Exact integers plus defined display tolerance | PASS |
+| C | SVG finite rendering | one constant point | one finite path command and finite dot; no NaN/Infinity | N/A | Parsed SVG coordinates | PASS |
 
-- Selection: Test, Unit 100, Sensor 02, range 90-110, Selected Cycle 100, raw column 7.
-- Independent actual point count: **21**.
-- Source: `data/FD001/test_FD001.txt`; SHA-256 `3cda7109ce17bafb5443f2ac926cfcf88154b941b8c4cf95eb55d1ddd6f52851`.
-- First: Cycle 90, raw token/value `642.33`, expected SVG `(68.0, 167.298969...)`.
-- Selected observation: raw line 12998, parsed row 12997, raw token/value `642.62`, Operational Settings `0.0018`, `-0.0`, `100.0`, expected dot `(470.0, 84.185567...)`.
-- Last: Cycle 110, raw token/value `642.25`, expected SVG `(872.0, 190.226804...)`.
-- Test Unit 100 RUL: 20 Cycles, explicitly tied to the Unit's final observed Cycle rather than Selected Cycle 100.
-- Result: API points, order, DOM value, locator, all SVG path coordinates, selected dot, prompt selection, raw token, locator and sample count matched the independent Oracle.
+For Cases A-C, source file and SHA-256 also matched the accepted Contract exactly: Test `3cda7109ce17bafb5443f2ac926cfcf88154b941b8c4cf95eb55d1ddd6f52851`; Train `963b5e22825b34d8b21c69e1aeb4af3e647050eb672ee8834ba4b5d91d2de0f8`.
 
-## CASE B
+## Retained SVG and API coverage
 
-- Selection: Train, Unit 1, Sensor 01, range 90-100, Selected Cycle 96, raw column 6.
-- Independent actual point count: **11**.
-- Source: `data/FD001/train_FD001.txt`; SHA-256 `963b5e22825b34d8b21c69e1aeb4af3e647050eb672ee8834ba4b5d91d2de0f8`.
-- First: Cycle 90, raw token/value `518.67`, expected SVG `(68.0, 163.0)`.
-- Selected observation: raw line 96, parsed row 95, raw token/value `518.67`, Operational Settings `-0.0034`, `0.0001`, `100.0`, expected dot `(550.4, 163.0)`.
-- Last: Cycle 100, raw token/value `518.67`, expected SVG `(872.0, 163.0)`.
-- Train RUL: not supplied and explicitly `NOT_APPLICABLE`.
-- Result: API points, order, DOM value, locator, all constant-series SVG coordinates, selected dot and prompt evidence matched the independent Oracle. A separate one-Cycle rendering at Cycle 96 produced finite SVG coordinates without NaN or Infinity.
+All displayed-range API points remain compared in original order against the direct TXT oracle, including Cycle, parsed value and raw token. Expected SVG coordinates are independently calculated from the 900×350 viewBox and production padding, serialized to two decimals for the path, and compared at 0.0051 pixel tolerance; the selected dot uses unrounded coordinates at 1e-9 tolerance.
 
 ## Evidence boundary
 
-Screenshots for the overview and both cases are retained only as local private Worker evidence. No screenshot, comparison CSV, complete series, complete index or raw data is committed.
+Overview and case screenshots remain local private Worker evidence. No screenshot, comparison CSV, complete series, complete index or raw data is committed.
