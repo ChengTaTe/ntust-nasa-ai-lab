@@ -71,6 +71,152 @@ function fmt(value) {
   return String(value);
 }
 
+function malformed(message) {
+  const error = new Error(`Malformed API response: ${message}`);
+  error.code = "MALFORMED_RESPONSE";
+  throw error;
+}
+
+function record(value, name) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) malformed(`${name} must be an object.`);
+  return value;
+}
+
+function text(value, name) {
+  if (typeof value !== "string" || !value.length) malformed(`${name} must be a non-empty string.`);
+  return value;
+}
+
+function finite(value, name) {
+  if (typeof value !== "number" || !Number.isFinite(value)) malformed(`${name} must be a finite number.`);
+  return value;
+}
+
+function integer(value, name, minimum = 0) {
+  finite(value, name);
+  if (!Number.isInteger(value) || value < minimum) malformed(`${name} must be an integer >= ${minimum}.`);
+  return value;
+}
+
+function array(value, name) {
+  if (!Array.isArray(value)) malformed(`${name} must be an array.`);
+  return value;
+}
+
+function sourceIdentity(value, name) {
+  const item = record(value, name);
+  text(item.source_file, `${name}.source_file`);
+  if (typeof item.source_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(item.source_sha256)) malformed(`${name}.source_sha256 is invalid.`);
+  return item;
+}
+
+function fieldLocator(value, name, selected, fieldName, rawColumn) {
+  const item = sourceIdentity(value, name);
+  if (item.dataset_id !== statusMetadata.dataset_id || item.dataset_split !== selected.split) malformed(`${name} dataset identity mismatch.`);
+  if (integer(item.unit_id, `${name}.unit_id`, 1) !== selected.unit || integer(item.cycle, `${name}.cycle`, 1) !== selected.cycle) malformed(`${name} selection identity mismatch.`);
+  integer(item.raw_line_number, `${name}.raw_line_number`, 1);
+  integer(item.parsed_row_index, `${name}.parsed_row_index`, 0);
+  if (integer(item.raw_column_index, `${name}.raw_column_index`, 1) !== rawColumn) malformed(`${name} raw column mismatch.`);
+  if (item.canonical_field_name !== fieldName) malformed(`${name} canonical field mismatch.`);
+  text(item.raw_value, `${name}.raw_value`);
+  finite(item.parsed_value, `${name}.parsed_value`);
+  if (Number(item.raw_value) !== item.parsed_value) malformed(`${name} raw and parsed values disagree.`);
+  return item;
+}
+
+function validateEvidenceResponses(selected, row, trend, series, ops, quality, locator, rul) {
+  const seriesCandidate = record(series, "sensor-series");
+  if (Array.isArray(seriesCandidate.points) && seriesCandidate.points.length === 0 && seriesCandidate.sample_count === 0 && seriesCandidate.cycle_start === null && seriesCandidate.cycle_end === null) {
+    const error = new Error("No actual observations exist in the selected range.");
+    error.code = "EMPTY_QUERY_RESULT";
+    throw error;
+  }
+  const names = ["unit_id", "cycle", "op_setting_1", "op_setting_2", "op_setting_3", ...Array.from({length: 21}, (_, index) => `sensor_${String(index + 1).padStart(2, "0")}`)];
+  const rawRow = record(row, "raw-row");
+  if (rawRow.dataset_id !== statusMetadata.dataset_id || rawRow.dataset_split !== selected.split) malformed("raw-row dataset identity mismatch.");
+  if (integer(rawRow.unit_id, "raw-row.unit_id", 1) !== selected.unit || integer(rawRow.cycle, "raw-row.cycle", 1) !== selected.cycle) malformed("raw-row selection identity mismatch.");
+  const fields = record(rawRow.fields, "raw-row.fields");
+  if (Object.keys(fields).length !== names.length || names.some(name => !Object.hasOwn(fields, name))) malformed("raw-row must contain all 26 canonical fields exactly once.");
+  names.forEach((name, index) => fieldLocator(fields[name], `raw-row.fields.${name}`, selected, name, index + 1));
+  const rowSource = sourceIdentity(rawRow.source_locator, "raw-row.source_locator");
+  integer(rowSource.raw_line_number, "raw-row.source_locator.raw_line_number", 1);
+  integer(rowSource.parsed_row_index, "raw-row.source_locator.parsed_row_index", 0);
+
+  const settings = record(ops, "operational-settings");
+  [1, 2, 3].forEach(index => finite(settings[`op_setting_${index}`], `operational-settings.op_setting_${index}`));
+  const settingLocators = array(settings.locators, "operational-settings.locators");
+  if (settingLocators.length !== 3) malformed("operational-settings must contain three locators.");
+  settingLocators.forEach((item, index) => fieldLocator(item, `operational-settings.locators[${index}]`, selected, `op_setting_${index + 1}`, index + 3));
+  [1, 2, 3].forEach(index => {
+    if (settings[`op_setting_${index}`] !== fields[`op_setting_${index}`].parsed_value) malformed(`operational setting ${index} disagrees with raw-row.`);
+  });
+
+  const sensor = selected.sensor;
+  const sensorColumn = Number(sensor.slice(-2)) + 5;
+  fieldLocator(locator, "source-locator", selected, sensor, sensorColumn);
+  if (locator.parsed_value !== fields[sensor].parsed_value || locator.raw_value !== fields[sensor].raw_value) malformed("source locator disagrees with raw-row.");
+
+  const sensorSeries = sourceIdentity(series, "sensor-series");
+  if (sensorSeries.dataset_split !== selected.split || integer(sensorSeries.unit_id, "sensor-series.unit_id", 1) !== selected.unit || sensorSeries.sensor_id !== sensor) malformed("sensor-series selection identity mismatch.");
+  if (integer(sensorSeries.raw_column_index, "sensor-series.raw_column_index", 1) !== sensorColumn) malformed("sensor-series raw column mismatch.");
+  const points = array(sensorSeries.points, "sensor-series.points");
+  if (!points.length || integer(sensorSeries.sample_count, "sensor-series.sample_count", 1) !== points.length) malformed("sensor-series sample count mismatch.");
+  let previousCycle = 0;
+  points.forEach((value, index) => {
+    const point = record(value, `sensor-series.points[${index}]`);
+    const cycle = integer(point.cycle, `sensor-series.points[${index}].cycle`, 1);
+    if (cycle <= previousCycle) malformed("sensor-series cycles must be strictly increasing.");
+    previousCycle = cycle;
+    finite(point.value, `sensor-series.points[${index}].value`);
+    text(point.raw_value, `sensor-series.points[${index}].raw_value`);
+    if (Number(point.raw_value) !== point.value) malformed(`sensor-series point ${index} raw and parsed values disagree.`);
+    integer(point.raw_line_number, `sensor-series.points[${index}].raw_line_number`, 1);
+    integer(point.parsed_row_index, `sensor-series.points[${index}].parsed_row_index`, 0);
+  });
+  if (sensorSeries.cycle_start !== points[0].cycle || sensorSeries.cycle_end !== points.at(-1).cycle || !points.some(point => point.cycle === selected.cycle)) malformed("sensor-series Cycle bounds or selected Cycle are invalid.");
+
+  const sensorTrend = record(trend, "sensor-trend");
+  if (typeof sensorTrend.source_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(sensorTrend.source_sha256)) malformed("sensor-trend.source_sha256 is invalid.");
+  if (sensorTrend.dataset_split !== selected.split || integer(sensorTrend.unit_id, "sensor-trend.unit_id", 1) !== selected.unit || sensorTrend.sensor_id !== sensor) malformed("sensor-trend selection identity mismatch.");
+  ["start_value", "end_value", "change", "slope", "slope_tolerance"].forEach(key => finite(sensorTrend[key], `sensor-trend.${key}`));
+  integer(sensorTrend.sample_count, "sensor-trend.sample_count", 1);
+  integer(sensorTrend.cycle_start, "sensor-trend.cycle_start", 1);
+  integer(sensorTrend.cycle_end, "sensor-trend.cycle_end", 1);
+  text(sensorTrend.direction, "sensor-trend.direction");
+  if (sensorTrend.pearson_correlation !== null) finite(sensorTrend.pearson_correlation, "sensor-trend.pearson_correlation");
+  if (sensorTrend.pearson_correlation === null && sensorTrend.direction !== "flat") malformed("null Pearson correlation is only valid for a flat trend.");
+  if (sensorTrend.sample_count !== sensorSeries.sample_count || sensorTrend.cycle_start !== sensorSeries.cycle_start || sensorTrend.cycle_end !== sensorSeries.cycle_end || sensorTrend.source_sha256 !== sensorSeries.source_sha256) malformed("sensor trend and series disagree.");
+
+  const dataQuality = sourceIdentity(quality, "data-quality");
+  if (dataQuality.dataset_split !== selected.split) malformed("data-quality split mismatch.");
+  text(dataQuality.quality_gate, "data-quality.quality_gate");
+  const structure = record(dataQuality.structure, "data-quality.structure");
+  if (typeof structure.passed !== "boolean") malformed("data-quality.structure.passed must be boolean.");
+  integer(structure.actual_rows, "data-quality.structure.actual_rows", 1);
+  integer(structure.unit_count, "data-quality.structure.unit_count", 1);
+  const qualityValues = record(dataQuality.quality, "data-quality.quality");
+  ["missing_values", "duplicate_full_rows", "missing_cycle_units"].forEach(key => integer(qualityValues[key], `data-quality.quality.${key}`, 0));
+  const statistics = record(qualityValues.feature_statistics, "data-quality.quality.feature_statistics");
+  Object.entries(statistics).forEach(([key, value]) => {
+    const statistic = record(value, `data-quality statistic ${key}`);
+    if (typeof statistic.constant !== "boolean" || typeof statistic.near_constant !== "boolean") malformed(`data-quality statistic ${key} flags are invalid.`);
+    integer(statistic.potential_outlier_count, `data-quality statistic ${key}.potential_outlier_count`, 0);
+  });
+  array(dataQuality.limitations, "data-quality.limitations").forEach((value, index) => text(value, `data-quality.limitations[${index}]`));
+
+  if (selected.split === "test") {
+    const testRul = sourceIdentity(rul, "test-rul");
+    if (testRul.dataset_split !== "test" || integer(testRul.unit_id, "test-rul.unit_id", 1) !== selected.unit) malformed("test-rul selection identity mismatch.");
+    integer(testRul.rul_cycles, "test-rul.rul_cycles", 0);
+    integer(testRul.raw_line_number, "test-rul.raw_line_number", 1);
+    integer(testRul.parsed_row_index, "test-rul.parsed_row_index", 0);
+    integer(testRul.raw_column_index, "test-rul.raw_column_index", 1);
+    text(testRul.raw_value, "test-rul.raw_value");
+    integer(testRul.parsed_value, "test-rul.parsed_value", 0);
+    if (testRul.rul_cycles !== testRul.parsed_value || Number(testRul.raw_value) !== testRul.parsed_value) malformed("test-rul values disagree.");
+  } else if (rul !== null) malformed("Train selection must not include RUL evidence.");
+}
+
 async function api(path, transaction) {
   const response = await fetch(path, {signal: transaction.signal, headers: {Accept: "application/json"}});
   const payload = await response.json();
@@ -117,6 +263,7 @@ function clearView() {
 function errorKind(error) {
   if (error.code === "SOURCE_INTEGRITY_FAILURE") return "source-integrity";
   if (error.code === "EMPTY_QUERY_RESULT") return "empty-result";
+  if (error.code === "MALFORMED_RESPONSE") return "malformed-response";
   if (["INVALID_REQUEST", "INVALID_SPLIT", "INVALID_CYCLE", "UNKNOWN_UNIT", "UNKNOWN_SENSOR"].includes(error.code)) return "invalid-selection";
   if (!error.code || error instanceof TypeError) return "api-unavailable";
   return "api-error";
@@ -417,6 +564,7 @@ async function refresh(transaction) {
     selected.split === "test" ? api(`/api/v1/test-rul?${base}`, transaction) : Promise.resolve(null),
   ]);
   if (!isCurrent(transaction) || snapshotKey(selectionSnapshot()) !== snapshotKey(selected)) return;
+  validateEvidenceResponses(selected, row, trend, series, ops, quality, locator, rul);
   const points = filteredPoints(series, selected);
   if (!points.length) {
     const error = new Error("No actual observations exist in the selected range.");
