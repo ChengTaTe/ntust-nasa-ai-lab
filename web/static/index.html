@@ -23,7 +23,9 @@
     <section class="controls panel" aria-label="查詢選擇器">
       <label>Dataset Split<select id="split-select" disabled></select></label>
       <label>Engine Unit<select id="unit-select" disabled></select></label>
-      <label>Cycle<select id="cycle-select" disabled></select></label>
+      <label>Start Cycle<select id="start-cycle-select" disabled></select></label>
+      <label>End Cycle<select id="end-cycle-select" disabled></select></label>
+      <label>Selected Cycle<select id="cycle-select" disabled></select></label>
       <label>Sensor<select id="sensor-select" disabled></select></label>
       <div id="ui-state" class="ui-state" role="status">正在驗證本地資料…</div>
     </section>
@@ -34,7 +36,10 @@
       <article class="panel chart-panel">
         <div class="section-heading"><div><p class="eyebrow">SENSOR TREND</p><h2 id="chart-title">趨勢圖</h2></div><div id="range-badge" class="badge">—</div></div>
         <svg id="trend-chart" viewBox="0 0 900 350" role="img" aria-label="Sensor 趨勢圖"></svg>
+        <p class="scope-label">FULL_UNIT_STATISTICS</p>
         <div id="trend-stats" class="stat-grid"></div>
+        <p class="scope-label">SELECTED_RANGE_STATISTICS</p>
+        <div id="range-stats" class="stat-grid range-stat-grid"></div>
         <p class="note">趨勢為 OLS 與 Pearson 統計描述，不代表已確認的故障診斷。</p>
       </article>
 
@@ -53,6 +58,17 @@
     </section>
 
     <section class="panel quality-panel"><div class="section-heading"><div><p class="eyebrow">DATA QUALITY</p><h2>資料品質摘要</h2></div><span id="quality-gate" class="badge">—</span></div><div id="quality-summary" class="quality-grid"></div><div id="quality-limitations" class="limitations"></div></section>
+
+    <section id="evidence-prompt-panel" class="panel prompt-panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">EVIDENCE PROMPT GENERATOR</p><h2>可追溯分析提示詞</h2></div>
+        <div class="prompt-actions"><button id="generate-prompt" type="button" disabled>Generate Prompt</button><button id="copy-prompt" type="button" disabled>Copy Prompt</button></div>
+      </div>
+      <p class="note">提示詞只包含目前選取的必要觀測、摘要與來源定位，不會嵌入完整 Sensor Series，也不會呼叫外部服務。</p>
+      <label class="prompt-preview-label" for="prompt-preview">Prompt Preview</label>
+      <textarea id="prompt-preview" rows="28" readonly aria-describedby="prompt-status"></textarea>
+      <div id="prompt-status" class="prompt-status" data-state="invalid" role="status">等待有效且完整的資料快照。</div>
+    </section>
   </main>
   <footer>本工具不宣稱已獨立驗證 NASA 官方來源；Sensor 物理名稱與單位維持 UNVERIFIED。</footer>
   <script src="/app.js" defer></script>
